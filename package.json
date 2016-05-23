@@ -1,0 +1,20 @@
+{
+  "name": "browsermob-proxy-client",
+  "version": "0.0.0",
+  "description": "HTTP client is interacting with BrowserMobProxy backend trough REST API",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "browsermob",
+    "proxy",
+    "har",
+    "selenium"
+  ],
+  "author": "Anton L.",
+  "license": "MIT",
+  "dependencies": {
+    "request": "^2.72.0"
+  }
+}
