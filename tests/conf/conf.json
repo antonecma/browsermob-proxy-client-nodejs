@@ -1,0 +1,8 @@
+{
+  "bmpAddress" : {
+    "host": "127.0.0.1",
+    "port": 9090
+  },
+
+  "bmpPath" : "c:/projects/st/utils/bmp/lib/browsermob-dist-2.1.0-beta-4.jar"
+}

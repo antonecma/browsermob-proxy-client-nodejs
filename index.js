@@ -2,37 +2,18 @@
 
 var request = require('request');
 var co = require('co');
-/**
-    *@class lpClass
-    *@classdesc General methods to iterate with BrowserMobProxy in es6 style
- */
 
-const lpClassInstances = Symbol('lpClassInstance');
 
-class lpClass {
+
+
+class browserMobProxyClient {
 
     constructor(options){
 
-        let {address, port} = options;
-
-        this[lpClassInstances] = [];
-        this._address = address;
-        this._port = port;
-
     };
 
-    get url() {
-        return `http://${this._address}:${this._port}`;
-    };
-
-    set url({address = '127.0.0.1', port='9090'}) {
-        this._address = address;
-        this._port = port;
-
-    };
     static _request(url, param) {
         param = param || {method : 'GET'};
-
         return new Promise((resolve, reject) => {
             request(url, param, (error, response, body) => {
                 if(error) return reject(error);
@@ -86,130 +67,7 @@ class lpClass {
 
 };
 
-const typeChangerRules = {
-    lpClass : {
-        constructor : {
-            address : (address) => {
-
-                let defaultValue = '127.0.0.1';
-
-                //if passed not string return default value
-                let typeOfAddress = {}.toString.call(address).slice(8, -1);
-
-                switch(typeOfAddress) {
-                    case 'String' :
-                        let ipv4RegExp = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-
-                        if(ipv4RegExp.test(address)){
-                            return address;
-                        } else {
-                            return defaultValue;
-                        }
-                        break;
-                    default:
-                        return defaultValue;
-                        break;
-                }
-            },
-            port : (port) => {
-
-                let defaultValue = 9090;
-
-                let typeOfAddress = {}.toString.call(port).slice(8, -1);
-
-                switch(typeOfAddress) {
-                    case 'Number' :
-                        //if port is out of TCP port range return default value
-                        return ((port < 0) || (port > 65535)) ?  defaultValue : port ^ 0;
-                        break;
-                    case 'String' :
-                        //if port type is not Number value return default value
-                        if(isNaN(port)) {
-                            return defaultValue;
-                        } else {
-                            //TODO pass port to number function implement
-                            return ((port < 0) || (port > 65535)) ?  defaultValue :  port ^ 0;
-                        }
-                        break;
-                    default:
-                        return defaultValue;
-                        break;
-                }
-            }
-        },
-        closeProxy : {
-            port : (port) => {
-                let typeOfAddress = {}.toString.call(port).slice(8, -1);
-
-                switch(typeOfAddress) {
-                    case 'Number' :
-                        if ((port < 0) || (port > 65535)) {
-                            throw new RangeError('port must be (port < 0) || (port > 65535) in range');
-                            return;
-                        } else {
-                            return port ^ 0;
-                        }
-                        break;
-                    case 'String' :
-                        //if port type is not Number value return default value
-                        if(isNaN(port)) {
-                            throw new RangeError('port must be (port < 0) || (port > 65535) in range');
-                            return;
-                        } else {
-                            typeChanger.lpClass.closeProxy.port(+port);
-                        }
-                        break;
-                    default:
-                        return defaultValue;
-                        break;
-                }
-            }
-        }
-    }
-};
-class typeChanger {
-
-    constructor(rulesObj){
-        this.rules = rulesObj;
-    }
-    change(methodName, paramsObj){
-        //const typeChangerClass = 'lpClass';
-        //const typeChangerClassMethodName = 'constructor';
-        const typeChangerClassMethod = this.rules[methodName];
-
-        const argKeys = Object.keys(typeChangerClassMethod);
-        const argKeysLength = argKeys.length;
-
-
-        for(let i = 0; i < argKeysLength; i++){
-
-            const argName = argKeys[i];
-
-            if(argName in typeChangerClassMethod) {
-                paramsObj[argName] = typeChangerClassMethod[argName](paramsObj[argName]);
-            }
-        }
-
-        return paramsObj;
-    }
-};
-class proxyLpClass {
-    constructor(){
-
-        const classNameForProxing = 'lpClass';
-        const typeRules = typeChangerRules[classNameForProxing];
-        const typeChangerInstance = new typeChanger(typeRules);
-        const handler = {
-            construct : (target, [constructorObj = {address : '127.0.0.1', port : 9090}]) => {
-                console.log('invoke from Proxy')
-                return new target(...constructorObj);
-            }
-        };
-        return new Proxy(lpClass, handler);
-    }
-};
-
-class lpClientClass extends lpClass {
+class lpClientClass extends browserMobProxyClient {
 
     constructor(paramObj) {
         paramObj = paramObj || {};
@@ -514,4 +372,4 @@ class lpClientClass extends lpClass {
     };
 };
 
-module.exports = {lpClientClass : lpClientClass, lpClass : proxyLpClass};
+module.exports = browserMobProxyClient;
