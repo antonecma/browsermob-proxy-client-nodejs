@@ -16,7 +16,8 @@
   "license": "MIT",
   "dependencies": {
     "co": "^4.6.0",
-    "request": "^2.72.0"
+    "request": "^2.72.0",
+    "typedproxy": "^1.0.3"
   },
   "devDependencies": {
     "nconf": "^0.8.4",

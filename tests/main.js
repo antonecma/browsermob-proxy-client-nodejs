@@ -4,27 +4,27 @@ const should = require('should');
 const nconf = require('nconf');
 const path = require('path');
 const childProcess = require('child_process');
+const co = require('co');
 
 const bmpClient = require('../index.js');
 const configFileName = 'conf';
 
+//using configuration file to setup some preferences for current tests
 nconf.file(configFileName, path.join(__dirname, 'conf', `${configFileName}.json`));
 nconf.use(configFileName);
 
 const defaultLpClassInstance = nconf.get('bmpAddress');
 
-
-let startBrowserMobProxy  = (path, host, port) => {
+//It starts the BrowserMob Proxy
+const startBrowserMobProxy  = (path, host, port) => {
     return new Promise((resolve, reject) => {
-        let bmpProcess = childProcess.exec(`java -jar ${path} -address ${host} -port ${port}`, (err, stdin, stdout) => {
-            if(err){
-                reject(err);
-            }
-        });
+        let bmpProcess = childProcess.spawn(`java`, [`-jar`, path, `-address`, host, `-port`, port]);
         bmpProcess.stdout.on('data', (data) => {
             if(data.includes('(main) Started')){
                 resolve(bmpProcess);
-            }
+            }/* else {
+                console.log(data.toString());
+            }*/
         });
         bmpProcess.stderr.on('data', (data) => {
             bmpProcess.kill();
@@ -34,16 +34,65 @@ let startBrowserMobProxy  = (path, host, port) => {
 
 };
 
+//host, port and BrowserMob Proxy location in system
 const bmpHost = nconf.get('bmpAddress:host');
 const bmpPort = nconf.get('bmpAddress:port');
 const bmpPath = nconf.get('bmpPath');
 
+//BrowserMob Proxy process
 
-(startBrowserMobProxy(bmpPath, bmpHost, bmpPort))
-    .then( (bmpProcess) => {
-        console.log('BrowserMob Proxy started.');
-        bmpProcess.kill();
-    })
-    .catch( (err) => {
-        console.log('BrowserMob Proxy started Error.');
+let bmpProcess = undefined;
+
+describe('BrowserMob Proxy Client general test', () => {
+    before((done) => {
+        //start BrowserMobProxy
+        (startBrowserMobProxy(bmpPath, bmpHost, bmpPort))
+            .then( (bmpProcessSpawned) => {
+                console.log('BrowserMob Proxy started.');
+                bmpProcess = bmpProcessSpawned;
+                done();
+            })
+            .catch( (err) => {
+                console.log(err);
+                done(err);
+            });
     });
+    describe('BrowserMob Proxy Client', () =>{
+
+        it('should contain url to REST API server', () => {
+            ((new bmpClient(bmpHost, bmpPort)).url).should.be.eql(`http://${bmpHost}:${bmpPort}`);
+        });
+
+        it('should fetch current proxies list from server', (done) => {
+            const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
+            browserMobProxyClient.getProxiesList()
+                .then((value) => { value.should.be.eql([]); done();})
+                .catch(value => {done(new Error(value));});
+        });
+
+        it('should create new BrowserMob Proxy Client instance', (done) => {
+            const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
+            browserMobProxyClient.create()
+                .then((value) => {value.should.have.properties(['port', 'serverUrl']); done();})
+                .catch((value) => {done(new Error(value));});
+        });
+
+        it('should shutdown all own proxies', (done) => {
+            const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
+            browserMobProxyClient.create()
+            .then(() => {
+                return browserMobProxyClient.closeAll();
+            })
+            .then(() => {
+                return browserMobProxyClient.getProxiesList();
+            })
+            .then((list) => { list.should.be.eql([]); done(); })
+            .catch((err) => { done(new Error(err)); });
+        });
+    });
+
+    after(() => {
+        bmpProcess.kill();
+    });
+});
+

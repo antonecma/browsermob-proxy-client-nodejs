@@ -1,30 +1,79 @@
 'use strict';
 
-var request = require('request');
-var co = require('co');
+const request = require('request');
+const co = require('co');
+const typed = require('typedproxy');
+const net = require('net');
 
 
+const typesBrowserMobProxyClient = {
+    'ip4' : (value) => {
 
+        const typeOfValue = {}.toString.call(value).slice(8, -1);
 
-class browserMobProxyClient {
+        if (typeOfValue !== 'String') {
+            throw new TypeError(`ip4 parameter must be String instance, not ${typeOfValue}`);
+        }
+        if (!net.isIPv4(value)) {
+            throw new TypeError(`ip4 parameter must be String instance, not ${typeOfValue}`);
+        }
+    },
+    'port' : (value) => {
 
-    constructor(options){
+        const typeOfValue = {}.toString.call(value).slice(8, -1);
+
+        if (typeOfValue !== 'Number') {
+            throw new TypeError(`port parameter must be Number instance, not ${typeOfValue}`);
+        }
+        if (!Number.isSafeInteger(value)) {
+            throw new TypeError(`port parameter must be safe integer value`);
+        }
+        if (value < 0 || value > 65535 ) {
+            throw new TypeError(`port parameter must be more than 0, and less than 65535, not ${value}`);
+        }
+    }
+};
+
+const clients = Symbol();
+const closeProxyMethod = Symbol();
+const bmpRequest = Symbol();
+
+const browserMobProxyClient = class browserMobProxyClient {
+
+    constructor(ip4Host, portPort){
+
+        this.host = ip4Host;
+        this.port = portPort;
+        this.url = `http://${ip4Host}:${portPort}`;
+        this[clients] = [];
 
     };
 
-    static _request(url, param) {
-        param = param || {method : 'GET'};
+    static [bmpRequest](urlApi, anyParam) {
+
+        anyParam = anyParam || {method : 'GET'};
+
         return new Promise((resolve, reject) => {
-            request(url, param, (error, response, body) => {
-                if(error) return reject(error);
-                else {
+            request(urlApi, anyParam, (error, response, body) => {
+                console.log(`request : ${urlApi}; method : ${anyParam.method}`);
+                if(error) {
+                    console.log('Error (FAIL) : ', error);
+                    return reject(error);
+                } else {
                     try {
+                        console.log('parsed body : ', JSON.parse(body));
                         return resolve(JSON.parse(body));
                     }catch(bodyError){
                         try{
-                            if(response.statusCode == 200 || response.statusCode == 204) return resolve(response);
-                            else return reject(response);
-                        }catch(responseError){
+                            if(response.statusCode == 200 || response.statusCode == 204){
+                                console.log('parsed status (OK) : ', response.statusCode);
+                                return resolve(response);
+                            } else {
+                                console.log('parsed status (FAIL) : ', response.statusCode);
+                                return reject(response);
+                            }
+                        } catch(responseError) {
+                            console.log('responseError (FAIL) : ', response.statusCode);
                             return reject(responseError);
                         }
                     }
@@ -34,73 +83,73 @@ class browserMobProxyClient {
     };
 
     getProxiesList() {
-        let apiUrl = `${this.url}/proxy`;
+
+        const apiUrl = `${this.url}/proxy`;
 
         return co(function* (){
-            let list = yield lpClass._request(apiUrl);
+            let list = yield browserMobProxyClient[bmpRequest](apiUrl);
             return list.proxyList;
         });
     };
-    closeProxy({port}) {
-        let apiUrl = `${this.url}/proxy/${port}`;
-        let options = {method : 'DELETE'};
 
-        return co(function* (){
-            yield lpClass._request(apiUrl, options);
-            return;
-        });
+    [closeProxyMethod](portProxy) {
 
+        const apiUrl = `${this.url}/proxy/${portProxy}`;
+        const options = {method : 'DELETE'};
+
+        return browserMobProxyClient[bmpRequest](apiUrl, options);
     };
+    create() {
 
-    closeAllProxies() {
-
-        let self = this;
+        const self = this;
 
         return co(function* (){
-            let list = yield self.getProxiesList();
+            const client = new browserMobProxyClientApi(self.url);
+            self[clients].push(client);
+            return client;
+        });
+    };
+    closeAll() {
+        const self = this;
 
-            for(let item of list){
-                yield self.closeProxy(item);
+        return co(function* (){
+            for(let resolvedPromiseClient of self[clients]){
+                const client = yield resolvedPromiseClient;
+                const result = yield self[closeProxyMethod](client.port);
+                console.log(`result`);
             }
+            /*self[clients].forEach( (resolvedPromise) => {
+                //yield new Promise((r, j) => {});
+                console.log(port);
+                yield self[closeProxyMethod](port);
+            });*/
         });
     };
 
 };
 
-class lpClientClass extends browserMobProxyClient {
+class browserMobProxyClientApi {
 
-    constructor(paramObj) {
-        paramObj = paramObj || {};
-        super(paramObj);
-    };
+    constructor(urlServerAPI, clientHost, clientPort) {
+        //save url to BrowserMob Proxy API Server
+        this.serverUrl = urlServerAPI;
 
+        //api path and options
+        let apiUrl = `${this.serverUrl}/proxy`;
+        const options = { method : 'POST' };
 
-    create({optionalPort, proxyAddress, proxyPort}) {
-
-        let self = this;
-        let apiUrl = '';
-        let options = { method : 'POST' };
-
-
-        if(proxyAddress || proxyPort){
-
-            this._proxyAddres = proxyAddress;
-            this._proxyPort = proxyPort;
-
-            apiUrl = `${this.url}/proxy?httpProxy=${proxyAddress}:${proxyPort}`;
+        //connect to external proxy, if needed
+        if(clientHost && clientPort){
+            apiUrl = `${this.serverUrl}/proxy?httpProxy=${clientHost}:${clientPort}`;
         }
-        else apiUrl = `${this.url}/proxy`;
-
-
+        //create new proxy
+        const self = this;
 
         return co(function* (){
-
-            let port = yield lpClass._request(apiUrl, options);
-            self._lpPort = port.port;
-            return port.port;
-
+            const port = yield browserMobProxyClient[bmpRequest](apiUrl, options);
+            self.port = port.port;
+            return self;
         });
-
     };
 
     attach({port}) {
@@ -128,7 +177,7 @@ class lpClientClass extends browserMobProxyClient {
         captureHeaders : captureHeaders, captureContent : captureContent, captureBinaryContent : captureBinaryContent}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl,options);
+            let result = yield lpClass[bmpRequest](apiUrl,options);
             return result;
         });
     };
@@ -139,7 +188,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'PUT', form : {pageRef : pageRef, pageTitle : pageTitle}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl,options);
+            let result = yield lpClass[bmpRequest](apiUrl,options);
             return result;
         });
     };
@@ -150,7 +199,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'GET' };
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -161,7 +210,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'GET' };
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -172,7 +221,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'PUT', form : {regex : regex, status : status}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -183,7 +232,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'DELETE'};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -194,7 +243,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'GET' };
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -205,7 +254,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'PUT', form : {regex : regex, status : status, method : method}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -216,7 +265,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'DELETE'};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -233,7 +282,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'PUT', form : limitParameter};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -244,7 +293,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'GET'};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -258,7 +307,7 @@ class lpClientClass extends browserMobProxyClient {
             let options = { method : 'POST', json : true, body : headers};
 
             return co(function* (){
-                let result = yield lpClass._request(apiUrl, options);
+                let result = yield lpClass[bmpRequest](apiUrl, options);
                 return result;
             });
         } catch (err){
@@ -274,7 +323,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'POST', json : dns};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -286,7 +335,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'PUT', form : {quitePeriodInMs : quitePeriodInMs, timeoutInMs : timeoutInMs}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -298,7 +347,7 @@ class lpClientClass extends browserMobProxyClient {
             connectionTimeout : connectionTimeout, dnsCacheTimeout : dnsCacheTimeout}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -308,7 +357,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'PUT', form : {matchRegex : matchRegex, replace : replace}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -319,7 +368,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'DELETE'};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -331,7 +380,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'DELETE'};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -342,7 +391,7 @@ class lpClientClass extends browserMobProxyClient {
         let options = { method : 'POST', json : {username : username, password : password}};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -354,7 +403,7 @@ class lpClientClass extends browserMobProxyClient {
             body : `request.headers().remove('${headerName}'); request.headers().add('${headerName}', '${headerValue}');`};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
@@ -366,10 +415,11 @@ class lpClientClass extends browserMobProxyClient {
             body : `request.headers().remove('${headerName}');`};
 
         return co(function* (){
-            let result = yield lpClass._request(apiUrl, options);
+            let result = yield lpClass[bmpRequest](apiUrl, options);
             return result;
         });
     };
 };
 
-module.exports = browserMobProxyClient;
+const typedBrowserMobProxyClient = new typed(browserMobProxyClient, typesBrowserMobProxyClient);
+module.exports = typedBrowserMobProxyClient;
