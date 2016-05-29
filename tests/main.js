@@ -7,6 +7,8 @@ const childProcess = require('child_process');
 const co = require('co');
 
 const bmpClient = require('../index.js');
+const moronHTTP = require('./helper/moronHTTP.js');
+
 const configFileName = 'conf';
 
 //using configuration file to setup some preferences for current tests
@@ -43,13 +45,20 @@ const bmpPath = nconf.get('bmpPath');
 
 let bmpProcess = undefined;
 
+//Test HTTP server port
+const moronPort = 58080;
+
 describe('BrowserMob Proxy Client general test', () => {
+
     before((done) => {
         //start BrowserMobProxy
         (startBrowserMobProxy(bmpPath, bmpHost, bmpPort))
             .then( (bmpProcessSpawned) => {
                 console.log('BrowserMob Proxy started.');
                 bmpProcess = bmpProcessSpawned;
+                return moronHTTP(moronPort);
+            })
+            .then(() => {
                 done();
             })
             .catch( (err) => {
@@ -57,6 +66,7 @@ describe('BrowserMob Proxy Client general test', () => {
                 done(err);
             });
     });
+
     describe('BrowserMob Proxy Client Class', () =>{
 
         it('should contain url to REST API server', () => {
@@ -110,6 +120,23 @@ describe('BrowserMob Proxy Client general test', () => {
             .then((list) => { list.should.be.eql([]); done(); })
             .catch((err) => { done(new Error(err)); });
         });
+    });
+
+    describe('BrowserMob Proxy Client instance [returned by create()]', () => {
+
+        describe('should create a new HAR', () => {
+
+            it('should capture headers', (done) => {
+                const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
+                browserMobProxyClient.create()
+                    .then((client) => {
+                        //capture header by default
+                        return client.createHAR();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
+        });
+
     });
 
     after(() => {
