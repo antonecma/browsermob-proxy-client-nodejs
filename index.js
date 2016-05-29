@@ -99,6 +99,7 @@ const browserMobProxyClient = class browserMobProxyClient {
 
         return browserMobProxyClient[bmpRequest](apiUrl, options);
     };
+
     create() {
 
         const self = this;
@@ -109,20 +110,27 @@ const browserMobProxyClient = class browserMobProxyClient {
             return client;
         });
     };
-    closeAll() {
+    getOwnProxiesList(){
         const self = this;
 
         return co(function* (){
+            let proxyList = [];
             for(let resolvedPromiseClient of self[clients]){
                 const client = yield resolvedPromiseClient;
-                const result = yield self[closeProxyMethod](client.port);
-                console.log(`result`);
+                proxyList.push(client);
+            };
+            return proxyList;
+        });
+    };
+    closeAllOwnProxies() {
+        const self = this;
+
+        return co(function* (){
+            const proxyList = yield self.getOwnProxiesList();
+            for(let proxy of proxyList){
+                yield self[closeProxyMethod](proxy.port);
+                self[clients].shift();
             }
-            /*self[clients].forEach( (resolvedPromise) => {
-                //yield new Promise((r, j) => {});
-                console.log(port);
-                yield self[closeProxyMethod](port);
-            });*/
         });
     };
 

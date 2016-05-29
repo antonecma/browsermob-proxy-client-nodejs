@@ -57,7 +57,7 @@ describe('BrowserMob Proxy Client general test', () => {
                 done(err);
             });
     });
-    describe('BrowserMob Proxy Client', () =>{
+    describe('BrowserMob Proxy Client Class', () =>{
 
         it('should contain url to REST API server', () => {
             ((new bmpClient(bmpHost, bmpPort)).url).should.be.eql(`http://${bmpHost}:${bmpPort}`);
@@ -69,7 +69,6 @@ describe('BrowserMob Proxy Client general test', () => {
                 .then((value) => { value.should.be.eql([]); done();})
                 .catch(value => {done(new Error(value));});
         });
-
         it('should create new BrowserMob Proxy Client instance', (done) => {
             const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
             browserMobProxyClient.create()
@@ -77,14 +76,36 @@ describe('BrowserMob Proxy Client general test', () => {
                 .catch((value) => {done(new Error(value));});
         });
 
+        it('should fetch current own proxies list', (done) => {
+            const browserMobProxyClient1 = new bmpClient(bmpHost, bmpPort);
+            const browserMobProxyClient2 = new bmpClient(bmpHost, bmpPort);
+            let proxyList1;
+            browserMobProxyClient1.create()
+                .then(() => {
+                    return browserMobProxyClient2.create();
+                })
+                .then(() => {
+                    return browserMobProxyClient1.getOwnProxiesList();
+                })
+                .then((proxyList) => {
+                    proxyList1 = proxyList;
+                    return browserMobProxyClient2.getOwnProxiesList();
+                })
+                .then((proxyList2) => {
+                    proxyList2.should.not.be.eql(proxyList1);
+                    done();
+                })
+                .catch((err) => { done(new Error(err)); });
+        });
+
         it('should shutdown all own proxies', (done) => {
             const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
             browserMobProxyClient.create()
             .then(() => {
-                return browserMobProxyClient.closeAll();
+                return browserMobProxyClient.closeAllOwnProxies();
             })
             .then(() => {
-                return browserMobProxyClient.getProxiesList();
+                return browserMobProxyClient.getOwnProxiesList();
             })
             .then((list) => { list.should.be.eql([]); done(); })
             .catch((err) => { done(new Error(err)); });
