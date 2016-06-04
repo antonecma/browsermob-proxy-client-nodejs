@@ -178,14 +178,23 @@ class browserMobProxyClientApi {
         }
     };
 
-    newHar({initialPageRef='', initialPageTitle='', captureHeaders = true, captureContent = false, captureBinaryContent = false}) {
+    newHar(boolCaptureHeaders = true, boolCaptureBody = false, boolCaptureAllContent = false, pageRef, pageTitle) {
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/har`;
-        let options = { method : 'PUT', form : {initialPageRef : initialPageRef, initialPageTitle : initialPageTitle,
-        captureHeaders : captureHeaders, captureContent : captureContent, captureBinaryContent : captureBinaryContent}};
+        const form = {captureHeaders: boolCaptureHeaders, captureContent : boolCaptureBody, captureBinaryContent : boolCaptureAllContent};
+
+        if(pageRef) {
+            form.initialPageRef = pageRef;
+        }
+
+        if(pageTitle) {
+            form.initialPageTitle = pageTitle;
+        }
+
+        let apiUrl = `${this.serverUrl}/proxy/${this.port}/har`;
+        let options = { method : 'PUT', form : form};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl,options);
+            let result = yield browserMobProxyClient[bmpRequest](apiUrl, options);
             return result;
         });
     };

@@ -5,9 +5,11 @@ const nconf = require('nconf');
 const path = require('path');
 const childProcess = require('child_process');
 const co = require('co');
+const webdriverio = require('webdriverio');
 
 const bmpClient = require('../index.js');
 const moronHTTP = require('./helper/moronHTTP.js');
+const seleniumHelper = require('./helper/seleniumHelper.js');
 
 const configFileName = 'conf';
 
@@ -18,9 +20,9 @@ nconf.use(configFileName);
 const defaultLpClassInstance = nconf.get('bmpAddress');
 
 //It starts the BrowserMob Proxy
-const startBrowserMobProxy  = (path, host, port) => {
+const startBrowserMobProxy  = (pathToBmp, host, port) => {
     return new Promise((resolve, reject) => {
-        let bmpProcess = childProcess.spawn(`java`, [`-jar`, path, `-address`, host, `-port`, port]);
+        let bmpProcess = childProcess.spawn(`java`, [`-jar`, path.resolve(pathToBmp), `-address`, host, `-port`, port]);
         bmpProcess.stdout.on('data', (data) => {
             if(data.includes('(main) Started')){
                 resolve(bmpProcess);
@@ -35,18 +37,37 @@ const startBrowserMobProxy  = (path, host, port) => {
     });
 
 };
-
+//It stars the Selenium
+const startSelenium = (pathToSelenium, port) => {
+    return new Promise((resolve, reject) => {
+        let seleniumProcess = childProcess.spawn(`java`, [`-jar`, path.resolve(pathToSelenium), `-port`, port]);
+        seleniumProcess.stderr.on('data', (data) => {
+            if(data.includes('Selenium Server is up and running')){
+                resolve(seleniumProcess);
+            }
+            if(data.includes('Failed to start')){
+                seleniumProcess.kill();
+                reject(new Error(`Selenium error : ${data}`));
+            }
+        });
+    });
+};
 //host, port and BrowserMob Proxy location in system
 const bmpHost = nconf.get('bmpAddress:host');
 const bmpPort = nconf.get('bmpAddress:port');
 const bmpPath = nconf.get('bmpPath');
-
-//BrowserMob Proxy process
-
-let bmpProcess = undefined;
+//port and Selenium location in system
+const seleniumPort = nconf.get('seleniumPort');
+const seleniumPath = nconf.get('seleniumPath');
 
 //Test HTTP server port
 const moronPort = 58080;
+
+//BrowserMob Proxy process
+let bmpProcess = undefined;
+let seleniumProcess = undefined;
+
+
 
 describe('BrowserMob Proxy Client general test', () => {
 
@@ -58,7 +79,11 @@ describe('BrowserMob Proxy Client general test', () => {
                 bmpProcess = bmpProcessSpawned;
                 return moronHTTP(moronPort);
             })
-            .then(() => {
+            .then( () => {
+                return startSelenium(seleniumPath, seleniumPort);
+            })
+            .then((seleniumProcessSpawned) => {
+                seleniumProcess = seleniumProcessSpawned;
                 done();
             })
             .catch( (err) => {
@@ -125,13 +150,13 @@ describe('BrowserMob Proxy Client general test', () => {
     describe('BrowserMob Proxy Client instance [returned by create()]', () => {
 
         describe('should create a new HAR', () => {
-
             it('should capture headers', (done) => {
+
                 const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
                 browserMobProxyClient.create()
                     .then((client) => {
+                        return client.newHar();
                         //capture header by default
-                        return client.createHAR();
                     })
                     .catch((value) => {done(new Error(value));});
             });
@@ -139,8 +164,12 @@ describe('BrowserMob Proxy Client general test', () => {
 
     });
 
-    after(() => {
+    after((done) => {
         bmpProcess.kill();
+        seleniumProcess.kill();
+        seleniumHelper.closeAllSession(seleniumPort)
+        .then(() => { done(); })
+        .catch((err) => { done(new Error(err)); });
     });
 });
 
