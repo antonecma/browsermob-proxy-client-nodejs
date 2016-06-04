@@ -67,7 +67,11 @@ const browserMobProxyClient = class browserMobProxyClient {
                         try{
                             if(response.statusCode == 200 || response.statusCode == 204){
                                 console.log('parsed status (OK) : ', response.statusCode);
-                                return resolve(response);
+                                if(body) {
+                                    return resolve(JSON.parse(body));
+                                } else {
+                                    return resolve();
+                                }
                             } else {
                                 console.log('parsed status (FAIL) : ', response.statusCode);
                                 return reject(response);
@@ -180,7 +184,7 @@ class browserMobProxyClientApi {
 
     newHar(boolCaptureHeaders = true, boolCaptureBody = false, boolCaptureAllContent = false, pageRef, pageTitle) {
 
-        const form = {captureHeaders: boolCaptureHeaders, captureContent : boolCaptureBody, captureBinaryContent : boolCaptureAllContent};
+        const form = {captureHeaders : boolCaptureHeaders, captureContent : boolCaptureBody, captureBinaryContent : boolCaptureAllContent};
 
         if(pageRef) {
             form.initialPageRef = pageRef;

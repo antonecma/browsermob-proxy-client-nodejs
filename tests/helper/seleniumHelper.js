@@ -7,4 +7,17 @@ const closeAllSessions = (port) => {
     return  webdriverio.remote(options).endAll();
 };
 
-module.exports = { closeAllSession : closeAllSessions };
+const initWithProxy = (seleniumPort, proxyHost, proxyPort) => {
+    const options = {
+        port : seleniumPort,
+        desiredCapabilities: {
+            browserName: 'firefox',
+            proxy : {
+                proxyType : 'manual',
+                httpProxy : `${proxyHost}:${proxyPort}`
+            }
+        }
+    };
+    return webdriverio.remote(options).init();
+};
+module.exports = { closeAllSession : closeAllSessions, initWithProxy : initWithProxy};

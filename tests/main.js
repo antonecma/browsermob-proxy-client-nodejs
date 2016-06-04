@@ -62,9 +62,12 @@ const seleniumPath = nconf.get('seleniumPath');
 
 //Test HTTP server port
 const moronPort = 58080;
+//Test HTTP server url
+const moronHTTPUrl = `http://127.0.0.1:${moronPort}`;
 
 //BrowserMob Proxy process
 let bmpProcess = undefined;
+//Selenium hub process
 let seleniumProcess = undefined;
 
 
@@ -150,13 +153,71 @@ describe('BrowserMob Proxy Client general test', () => {
     describe('BrowserMob Proxy Client instance [returned by create()]', () => {
 
         describe('should create a new HAR', () => {
+
             it('should capture headers', (done) => {
 
-                const browserMobProxyClient = new bmpClient(bmpHost, bmpPort);
-                browserMobProxyClient.create()
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
                     .then((client) => {
-                        return client.newHar();
-                        //capture header by default
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        return seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port)
+                            .url(moronHTTPUrl);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+
+                        let responseHeaders = [];
+                        const responseCount = har.log.entries.length;
+
+                        for(let i = 0; i < responseCount; i++){
+                            responseHeaders.push(...har.log.entries[i].response.headers);
+                        }
+                        responseHeaders.should.containDeep( [{ name: 'Header1', value: 'value1' },
+                            { name: 'Header2', value: 'value2' }]);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
+
+            it('should capture body content', (done) => {
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        return seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port)
+                            .url(moronHTTPUrl);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+
+                        let responseContents = [];
+                        const responseCount = har.log.entries.length;
+
+                        for(let i = 0; i < responseCount; i++){
+                            responseContents.push(har.log.entries[i].response.content.text);
+                        }
+                        responseContents.should.containEql('<html><body><h1>MoronHTTP</h1></body></html>');
+                        done();
                     })
                     .catch((value) => {done(new Error(value));});
             });
@@ -166,9 +227,11 @@ describe('BrowserMob Proxy Client general test', () => {
 
     after((done) => {
         bmpProcess.kill();
-        seleniumProcess.kill();
         seleniumHelper.closeAllSession(seleniumPort)
-        .then(() => { done(); })
+        .then(() => {
+            seleniumProcess.kill();
+            done();
+        })
         .catch((err) => { done(new Error(err)); });
     });
 });

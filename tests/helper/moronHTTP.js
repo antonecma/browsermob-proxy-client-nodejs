@@ -21,20 +21,15 @@ const createHTTPServer = (port = 58080) => {
             const parsedUrl = url.parse(req.url);
 
             switch (parsedUrl.pathname) {
-                case '/content' :
-                    break;
-                case '/full' :
-                    break;
                 default:
-
                     res.setHeader('Content-Type', 'text/html');
                     res.setHeader('Header1', 'value1');
                     res.setHeader('Header2', 'value2');
                     res.writeHeader(200);
-
+                    res.write('<html><body><h1>MoronHTTP</h1></body></html>');
                     break;
             }
-            res.end(`<html><body><h1>MoronHTTP</h1></body></html>`);
+            res.end();
         });
     });
 };
