@@ -3,8 +3,11 @@
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
+const path = require('path');
 
 const createHTTPServer = (port = 58080) => {
+
+    const moronLocalPath = path.dirname(module.filename);
 
     return new Promise((resolve, reject) => {
 
@@ -21,15 +24,28 @@ const createHTTPServer = (port = 58080) => {
             const parsedUrl = url.parse(req.url);
 
             switch (parsedUrl.pathname) {
+                case '/moron.jpeg' :
+                    console.log('moron.jpeg');
+                    res.setHeader('Content-Type', 'image/jpeg');
+                    const readableStream = fs.createReadStream(path.join(moronLocalPath, 'moron.jpeg'));
+                    readableStream.pipe(res);
+                    break;
+                case '/binaryContent' :
+                    res.setHeader('Content-Type', 'text/html');
+                    res.writeHeader(200);
+                    res.write('<html><body><img src="moron.jpeg"></body></html>');
+                    res.end();
+                    break;
                 default:
                     res.setHeader('Content-Type', 'text/html');
                     res.setHeader('Header1', 'value1');
                     res.setHeader('Header2', 'value2');
                     res.writeHeader(200);
                     res.write('<html><body><h1>MoronHTTP</h1></body></html>');
+                    res.end();
                     break;
             }
-            res.end();
+
         });
     });
 };
