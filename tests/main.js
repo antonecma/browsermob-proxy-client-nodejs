@@ -221,6 +221,38 @@ describe('BrowserMob Proxy Client general test', () => {
                     })
                     .catch((value) => {done(new Error(value));});
             });
+
+            it('should capture binary content', (done) => {
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true, true);
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        return seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port)
+                            .url(`${moronHTTPUrl}/binaryContent`);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+
+                        const imageElement = har.log.entries.find((entri) => {
+                            return entri.response.content.mimeType == 'image/jpeg';
+                        });
+
+                        imageElement.response.content.text.should.be.eql(moronHTTP.imageBase64);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
         });
 
     });

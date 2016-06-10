@@ -8,6 +8,8 @@ const path = require('path');
 const createHTTPServer = (port = 58080) => {
 
     const moronLocalPath = path.dirname(module.filename);
+    const pathToImage = path.join(moronLocalPath, 'moron.jpeg');
+    createHTTPServer.imageBase64 = (fs.readFileSync(pathToImage)).toString('base64');
 
     return new Promise((resolve, reject) => {
 
@@ -27,7 +29,7 @@ const createHTTPServer = (port = 58080) => {
                 case '/moron.jpeg' :
                     console.log('moron.jpeg');
                     res.setHeader('Content-Type', 'image/jpeg');
-                    const readableStream = fs.createReadStream(path.join(moronLocalPath, 'moron.jpeg'));
+                    const readableStream = fs.createReadStream(pathToImage);
                     readableStream.pipe(res);
                     break;
                 case '/binaryContent' :
