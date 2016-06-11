@@ -152,7 +152,7 @@ describe('BrowserMob Proxy Client general test', () => {
 
     describe('BrowserMob Proxy Client instance [returned by create()]', () => {
 
-        describe('should create a new HAR', () => {
+        describe('should create a new HAR - newHar()', () => {
 
             it('should capture headers', (done) => {
 
@@ -224,6 +224,7 @@ describe('BrowserMob Proxy Client general test', () => {
 
             it('should capture binary content', (done) => {
 
+
                 let browserMobProxyClient =  undefined;
 
                 (new bmpClient(bmpHost, bmpPort)).create()
@@ -249,6 +250,62 @@ describe('BrowserMob Proxy Client general test', () => {
                         });
 
                         imageElement.response.content.text.should.be.eql(moronHTTP.imageBase64);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
+
+            it('should set initial page id', (done) => {
+
+                const pageID = 'testPageTitle';
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true, true, pageID);
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        return seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port)
+                            .url(`${moronHTTPUrl}`);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+                        har.log.pages[0].id.should.be.eql(pageID);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
+
+            it('should set initial page title', (done) => {
+
+                const pageTitle = 'someTitle';
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true, true, undefined, pageTitle);
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        return seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port)
+                            .url(`${moronHTTPUrl}`);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+                        har.log.pages[0].title.should.be.eql(pageTitle);
                         done();
                     })
                     .catch((value) => {done(new Error(value));});
