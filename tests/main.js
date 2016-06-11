@@ -312,7 +312,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('should start new page on the existing HAR - startPage()', () => {
+        describe.skip('should start new page on the existing HAR - startPage()', () => {
 
             it('should add new page on existing HAR', (done) => {
 
@@ -425,6 +425,36 @@ describe('BrowserMob Proxy Client general test', () => {
                         done();
                     })
                     .catch((value) => {done(new Error(value));});
+            });
+        });
+
+        describe('should close client - close()', () => {
+
+            it('should close', (done) => {
+
+                const browserMobProxy = new bmpClient(bmpHost, bmpPort);
+
+                let client = undefined;
+                let currentCountOfProxy = undefined;
+
+                browserMobProxy.create()
+                    .then((bmpClient) => {
+                        client = bmpClient;
+                        return browserMobProxy.getProxiesList();
+                    })
+                    .then((list) => {
+                        currentCountOfProxy = list.length;
+                        return client.close();
+                    })
+                    .then(() => {
+                        return browserMobProxy.getProxiesList();
+                    })
+                    .then((list) => {
+                        list.length.should.be.eql(currentCountOfProxy - 1);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+
             });
         });
 

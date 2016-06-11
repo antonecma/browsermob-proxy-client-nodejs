@@ -164,23 +164,6 @@ class browserMobProxyClientApi {
         });
     };
 
-    attach({port}) {
-        if(parseInt(port)) this._lpPort = port;
-        else throw new Error('To attach to little proxy instance, you must use NUMBER of created port');
-        return;
-    };
-
-    close() {
-        if(this._lpPort){
-            let self = this;
-            return co(function* (){
-                yield self.closeProxy({port : self._lpPort})
-            });
-        }
-        else{
-            throw new Error(`_lpProt does't setup. It looks like that you does't invoke create() of lpClass instance.`);
-        }
-    };
     //new version
     newHar(boolCaptureHeaders = true, boolCaptureBody = false, boolCaptureAllContent = false, pageRef, pageTitle) {
 
@@ -202,7 +185,7 @@ class browserMobProxyClientApi {
             return result;
         });
     };
-
+    //new version
     startPage({pageRef, pageTitle} = {}) {
         const form = {};
 
@@ -220,6 +203,24 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl,options);
         });
     };
+    //new version
+    close() {
+        const apiUrl = `${this.serverUrl}/proxy/${this.port}`;
+        const options = {method : 'DELETE'};
+
+        return co(function* (){
+            return browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    };
+
+    attach({port}) {
+        if(parseInt(port)) this._lpPort = port;
+        else throw new Error('To attach to little proxy instance, you must use NUMBER of created port');
+        return;
+    };
+
+
+
 
     getHar() {
 
