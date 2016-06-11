@@ -152,7 +152,7 @@ describe('BrowserMob Proxy Client general test', () => {
 
     describe('BrowserMob Proxy Client instance [returned by create()]', () => {
 
-        describe.skip('should create a new HAR - newHar()', () => {
+        describe('should create a new HAR - newHar()', () => {
 
             it('should capture headers', (done) => {
 
@@ -312,7 +312,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('should start new page on the existing HAR - startPage()', () => {
+        describe('should start new page on the existing HAR - startPage()', () => {
 
             it('should add new page on existing HAR', (done) => {
 
@@ -455,6 +455,34 @@ describe('BrowserMob Proxy Client general test', () => {
                     })
                     .catch((value) => {done(new Error(value));});
 
+            });
+        });
+
+        describe('should return HAR - getHAR()', () => {
+
+            it('should return HAR created by newHar() - getHar()', (done) => {
+
+                let browserMobProxyClient = undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        return seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port)
+                            .url(`${moronHTTPUrl}`);
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        har.log.should.have.properties(['version' , 'creator', 'browser', 'pages', 'entries',  'comment']);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
             });
         });
 

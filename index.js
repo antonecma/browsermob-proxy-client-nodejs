@@ -212,7 +212,17 @@ class browserMobProxyClientApi {
             return browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
+    //new version
+    getHar() {
+        const apiUrl = `${this.serverUrl}/proxy/${this.port}/har`;
+        let options = { method : 'GET' };
 
+        return co(function* (){
+            let result = yield browserMobProxyClient[bmpRequest](apiUrl, options);
+            return result;
+        });
+    };
+    //old version
     attach({port}) {
         if(parseInt(port)) this._lpPort = port;
         else throw new Error('To attach to little proxy instance, you must use NUMBER of created port');
@@ -222,16 +232,7 @@ class browserMobProxyClientApi {
 
 
 
-    getHar() {
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/har`;
-        let options = { method : 'GET' };
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
 
     displayWhiteList() {
 
