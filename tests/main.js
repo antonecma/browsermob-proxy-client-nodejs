@@ -152,7 +152,7 @@ describe('BrowserMob Proxy Client general test', () => {
 
     describe('BrowserMob Proxy Client instance [returned by create()]', () => {
 
-        describe('should create a new HAR - newHar()', () => {
+        describe.skip('should create a new HAR - newHar()', () => {
 
             it('should capture headers', (done) => {
 
@@ -306,6 +306,122 @@ describe('BrowserMob Proxy Client general test', () => {
                     })
                     .then((har) => {
                         har.log.pages[0].title.should.be.eql(pageTitle);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
+        });
+
+        describe('should start new page on the existing HAR - startPage()', () => {
+
+            it('should add new page on existing HAR', (done) => {
+
+                let browserMobProxyClient =  undefined;
+                let seleniumInstance = undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        seleniumInstance = seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port);
+                        return seleniumInstance.url(`${moronHTTPUrl}`);
+                    })
+                    .then(() => {
+                        browserMobProxyClient.startPage();
+                    })
+                    .then(() => {
+                        return seleniumInstance.url(`${moronHTTPUrl}/binaryContent`);
+
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+                        har.log.pages.length.should.be.eql(2);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
+
+            it('should add new page on existing HAR with page ref (ID)', (done) => {
+
+                const pageRef = 'somePageRef';
+
+
+                let browserMobProxyClient =  undefined;
+                let seleniumInstance = undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        seleniumInstance = seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port);
+                        return seleniumInstance.url(`${moronHTTPUrl}`);
+                    })
+                    .then(() => {
+                        browserMobProxyClient.startPage({pageRef : pageRef});
+                    })
+                    .then(() => {
+                        return seleniumInstance.url(`${moronHTTPUrl}/binaryContent`);
+
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+                        har.log.pages.length.should.be.eql(2);
+                        har.log.pages[1].id.should.be.eql(pageRef);
+                        done();
+                    })
+                    .catch((value) => {done(new Error(value));});
+            });
+
+            it('should add new page on existing HAR with page ref (ID) and title', (done) => {
+
+                const pageTitle = 'somePageTitle';
+
+
+                let browserMobProxyClient =  undefined;
+                let seleniumInstance = undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        //Browser Mob Client
+                        browserMobProxyClient = client;
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        seleniumInstance = seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port);
+                        return seleniumInstance.url(`${moronHTTPUrl}`);
+                    })
+                    .then(() => {
+                        browserMobProxyClient.startPage({pageTitle : pageTitle});
+                    })
+                    .then(() => {
+                        return seleniumInstance.url(`${moronHTTPUrl}/binaryContent`);
+
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then((har) => {
+                        har.log.pages.length.should.be.eql(2);
+                        har.log.pages[1].title.should.be.eql(pageTitle);
                         done();
                     })
                     .catch((value) => {done(new Error(value));});

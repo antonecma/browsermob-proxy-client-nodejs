@@ -181,7 +181,7 @@ class browserMobProxyClientApi {
             throw new Error(`_lpProt does't setup. It looks like that you does't invoke create() of lpClass instance.`);
         }
     };
-
+    //new version
     newHar(boolCaptureHeaders = true, boolCaptureBody = false, boolCaptureAllContent = false, pageRef, pageTitle) {
 
         const form = {captureHeaders : boolCaptureHeaders, captureContent : boolCaptureBody, captureBinaryContent : boolCaptureAllContent};
@@ -203,14 +203,21 @@ class browserMobProxyClientApi {
         });
     };
 
-    newPage({pageRef='', pageTitle=''}) {
+    startPage({pageRef, pageTitle} = {}) {
+        const form = {};
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/har/pageRef`;
-        let options = { method : 'PUT', form : {pageRef : pageRef, pageTitle : pageTitle}};
+        if(pageRef) {
+            form.pageRef  = pageRef;
+        }
+
+        if(pageTitle) {
+            form.pageTitle = pageTitle;
+        }
+        let apiUrl = `${this.serverUrl}/proxy/${this.port}/har/pageRef`;
+        let options = { method : 'PUT', form : form};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl,options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl,options);
         });
     };
 
