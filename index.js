@@ -160,6 +160,7 @@ class browserMobProxyClientApi {
         return co(function* (){
             const port = yield browserMobProxyClient[bmpRequest](apiUrl, options);
             self.port = port.port;
+            self.apiUrl = `${self.serverUrl}/proxy/${self.port}`;
             return self;
         });
     };
@@ -177,7 +178,7 @@ class browserMobProxyClientApi {
             form.initialPageTitle = pageTitle;
         }
 
-        let apiUrl = `${this.serverUrl}/proxy/${this.port}/har`;
+        let apiUrl = `${this.apiUrl}/har`;
         let options = { method : 'PUT', form : form};
 
         return co(function* (){
@@ -196,7 +197,7 @@ class browserMobProxyClientApi {
         if(pageTitle) {
             form.pageTitle = pageTitle;
         }
-        let apiUrl = `${this.serverUrl}/proxy/${this.port}/har/pageRef`;
+        let apiUrl = `${this.apiUrl}/har/pageRef`;
         let options = { method : 'PUT', form : form};
 
         return co(function* (){
@@ -205,7 +206,7 @@ class browserMobProxyClientApi {
     };
     //new version
     close() {
-        const apiUrl = `${this.serverUrl}/proxy/${this.port}`;
+        const apiUrl = `${this.apiUrl}`;
         const options = {method : 'DELETE'};
 
         return co(function* (){
@@ -214,12 +215,43 @@ class browserMobProxyClientApi {
     };
     //new version
     getHar() {
-        const apiUrl = `${this.serverUrl}/proxy/${this.port}/har`;
+        const apiUrl = `${this.apiUrl}/har`;
         let options = { method : 'GET' };
 
         return co(function* (){
             let result = yield browserMobProxyClient[bmpRequest](apiUrl, options);
             return result;
+        });
+    };
+    //new version
+    getWhiteList() {
+
+        const apiUrl = `${this.apiUrl}/whitelist`;
+        const options = { method : 'GET' };
+
+        return co(function* (){
+            let result = yield browserMobProxyClient[bmpRequest](apiUrl, options);
+            return result;
+        });
+    };
+    //new version
+    setWhiteList(httpCodeStatus, regexps) {
+
+        const apiUrl = `${this.apiUrl}/whitelist`;
+        const options = { method : 'PUT', form : {regex : regexps.join(','), status : httpCodeStatus}};
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    };
+    //new version
+    clearWhiteList() {
+
+        const apiUrl = `${this.apiUrl}/whitelist`;
+        let options = { method : 'DELETE'};
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
     //old version
@@ -234,38 +266,8 @@ class browserMobProxyClientApi {
 
 
 
-    displayWhiteList() {
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/whitelist`;
-        let options = { method : 'GET' };
 
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
-
-    setWhiteList({regex = '', status = 200}) {
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/whitelist`;
-        let options = { method : 'PUT', form : {regex : regex, status : status}};
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
-
-    clearWhiteList() {
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/whitelist`;
-        let options = { method : 'DELETE'};
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
 
     displayBlackList() {
 

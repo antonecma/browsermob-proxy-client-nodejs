@@ -95,7 +95,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
     });
 
-    describe('BrowserMob Proxy Client Class', () =>{
+    describe.skip('BrowserMob Proxy Client Class', () =>{
 
         it('should contain url to REST API server', () => {
             ((new bmpClient(bmpHost, bmpPort)).url).should.be.eql(`http://${bmpHost}:${bmpPort}`);
@@ -152,7 +152,7 @@ describe('BrowserMob Proxy Client general test', () => {
 
     describe('BrowserMob Proxy Client instance [returned by create()]', () => {
 
-        describe('should create a new HAR - newHar()', () => {
+        describe.skip('should create a new HAR - newHar()', () => {
 
             it('should capture headers', (done) => {
 
@@ -312,7 +312,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('should start new page on the existing HAR - startPage()', () => {
+        describe.skip('should start new page on the existing HAR - startPage()', () => {
 
             it('should add new page on existing HAR', (done) => {
 
@@ -428,7 +428,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('should close client - close()', () => {
+        describe.skip('should close client - close()', () => {
 
             it('should close', (done) => {
 
@@ -458,7 +458,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('should return HAR - getHAR()', () => {
+        describe.skip('should return HAR - getHAR()', () => {
 
             it('should return HAR created by newHar() - getHar()', (done) => {
 
@@ -483,6 +483,114 @@ describe('BrowserMob Proxy Client general test', () => {
                         done();
                     })
                     .catch((value) => {done(new Error(value));});
+            });
+        });
+
+        describe('work with whitelists - getWhiteList(), setWhiteList(), clearWhiteList()', () => {
+
+            describe('getWhiteList()', () => {
+
+                it('should return empty list of white domain, if we did not add domain before', (done) => {
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            return client.getWhiteList();
+                        })
+                        .then((list) => {
+                            list.should.be.empty();
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+                });
+            });
+
+            describe('setWhiteList()', () => {
+
+                it('should set list', (done) => {
+
+                    const whiteList = [`${moronHTTPUrl}`];
+                    const codeForNonWhiteList = 404;
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setWhiteList(codeForNonWhiteList, whiteList);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getWhiteList();
+                        })
+                        .then((list) => {
+                            list.should.be.eql(whiteList);
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+
+                });
+
+                it('should not return resource which not placed in list', (done) => {
+
+                    const whiteList = [`${moronHTTPUrl}`];
+                    const codeForNonWhiteList = 404;
+                    let browserMobProxyClient =  undefined;
+                    let seleniumInstance = undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setWhiteList(codeForNonWhiteList, whiteList);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.newHar();
+                        })
+                        .then(() => {
+                            //Create new selenium session
+                            seleniumInstance = seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port);
+                           return seleniumInstance.url(`${whiteList[0]}/binaryContent`);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getHar();
+                        })
+                        .then((har) => {
+                            har.log.entries.should.be.empty();
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+                });
+            });
+
+            describe('clearWhiteList()', () => {
+
+                it('should empty list after add some url - clearWhiteList()', (done) => {
+
+                    const whiteList = [`${moronHTTPUrl}`];
+                    const codeForNonWhiteList = 404;
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setWhiteList(codeForNonWhiteList, whiteList);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.clearWhiteList();
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getWhiteList();
+                        })
+                        .then((list) => {
+                            list.should.be.empty();
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+                });
+
             });
         });
 
