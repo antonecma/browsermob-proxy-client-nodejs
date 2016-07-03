@@ -486,7 +486,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('work with whitelists - getWhiteList(), setWhiteList(), clearWhiteList()', () => {
+        describe.skip('work with whitelists - getWhiteList(), setWhiteList(), clearWhiteList()', () => {
 
             describe('getWhiteList()', () => {
 
@@ -589,6 +589,134 @@ describe('BrowserMob Proxy Client general test', () => {
                             done();
                         })
                         .catch((value) => {done(new Error(value));});
+                });
+
+            });
+        });
+
+        describe('work with blacklists - getBlackList(), setBlackList(), clearBlackList()', () => {
+
+            describe('getBlackList()', () => {
+
+                it('should return empty list of black domain, if we did not add domain before', (done) => {
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            return client.getBlackList();
+                        })
+                        .then((list) => {
+                            list.should.be.empty();
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+                });
+            });
+
+            describe('setBlackList()', () => {
+
+                it('should set list', (done) => {
+
+                    const blackList = [`${moronHTTPUrl}`, `${moronHTTPUrl}/binaryContent`];
+                    const codeForInList= 404;
+                    const method = 'get|post';
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setBlackList(codeForInList, blackList[0]);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.setBlackList(codeForInList, blackList[1], method);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getBlackList();
+                        })
+                        .then((list) => {
+
+                            list.should.be.length(2);
+
+                            list[0].should.have.property('pattern').eql(blackList[0]);
+                            list[1].should.have.property('pattern').eql(blackList[1]);
+
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+
+                });
+
+                it('should not return resource which placed in list', (done) => {
+
+                    const blackList = ['https?://www\\.google\\.com/.*'];
+                    const blackUrl = 'http://www.google.com';
+                    const codeForNonWhiteList = 500;
+
+                    let browserMobProxyClient =  undefined;
+                    let seleniumInstance = undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setBlackList(codeForNonWhiteList, blackList[0]);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.newHar();
+                        })
+                        .then(() => {
+                            //Create new selenium session
+                            seleniumInstance = seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port);
+                            return seleniumInstance.url(blackUrl);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getHar();
+                        })
+                        .then((har) => {
+                            har.log.entries.should.be.empty();
+                            done();
+                        })
+                        .catch((value) => {
+                            console.log(value);
+                            done(new Error(value));});
+                });
+            });
+
+            describe('clearBlackList()', () => {
+
+                it('should clear black list', (done) => {
+
+                    const blackList = [`${moronHTTPUrl}`, `${moronHTTPUrl}/binaryContent`];
+                    const codeForInList= 404;
+                    const method = 'get|post';
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            //Browser Mob Client
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setBlackList(codeForInList, blackList[0]);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.setBlackList(codeForInList, blackList[1], method);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.clearBlackList();
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getBlackList();
+                        })
+                        .then((list) => {
+
+                            list.should.be.empty();
+
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+
                 });
 
             });
