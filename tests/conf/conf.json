@@ -6,6 +6,6 @@
 
   "bmpPath" : "./tests/utils/bmp/lib/browsermob-dist-2.1.1.jar",
 
-  "seleniumPort" : 4444,
-  "seleniumPath" : "./tests/utils/selenium-2.53/selenium-server-standalone-2.53.0.jar"
+  "seleniumPort" : 4445,
+  "seleniumPath" : "./tests/utils/selenium-2.53/selenium-server-standalone-2.53.1.jar"
 }

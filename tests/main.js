@@ -40,7 +40,7 @@ const startBrowserMobProxy  = (pathToBmp, host, port) => {
 //It stars the Selenium
 const startSelenium = (pathToSelenium, port) => {
     return new Promise((resolve, reject) => {
-        let seleniumProcess = childProcess.spawn(`java`, [`-jar`, path.resolve(pathToSelenium), `-port`, port]);
+        let seleniumProcess = childProcess.spawn(`java`, [`-jar`, path.resolve(pathToSelenium), `-port`, port], { stdio: ['ignore', 'pipe', 'pipe'] });
         seleniumProcess.stderr.on('data', (data) => {
             if(data.includes('Selenium Server is up and running')){
                 resolve(seleniumProcess);
@@ -676,7 +676,12 @@ describe('BrowserMob Proxy Client general test', () => {
                             return browserMobProxyClient.getHar();
                         })
                         .then((har) => {
-                            har.log.entries.should.be.empty();
+
+                            let request = har.log.entries.find( (item) => {
+                                return item.request.url == blackUrl;
+                            });
+
+                            should.not.exist(request);
                             done();
                         })
                         .catch((value) => {
