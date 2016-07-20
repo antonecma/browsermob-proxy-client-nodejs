@@ -4,13 +4,22 @@ const http = require('http');
 const url = require('url');
 const fs = require('fs');
 const path = require('path');
+const buffer = require('buffer').Buffer;
+
 
 const createHTTPServer = (port = 58080) => {
-
+    
     const moronLocalPath = path.dirname(module.filename);
-    const pathToImage = path.join(moronLocalPath, 'moron.jpeg');
-    createHTTPServer.imageBase64 = (fs.readFileSync(pathToImage)).toString('base64');
+    const imageName = 'moron.jpeg';
+    const pathToImage = path.join(moronLocalPath, imageName);
 
+    createHTTPServer.imageName = imageName;
+    createHTTPServer.image = (fs.readFileSync(pathToImage));
+    createHTTPServer.imageBase64 = createHTTPServer.image.toString('base64');
+    createHTTPServer.oneMbitBuffer = buffer.alloc(1024 * 1024, 74);
+    fs.stat(pathToImage, (err, stat) => {
+        createHTTPServer.imageSize = stat.size;
+    });
     return new Promise((resolve, reject) => {
 
         const server = http.createServer();
@@ -29,13 +38,18 @@ const createHTTPServer = (port = 58080) => {
                 case '/moron.jpeg' :
                     console.log('moron.jpeg');
                     res.setHeader('Content-Type', 'image/jpeg');
-                    const readableStream = fs.createReadStream(pathToImage);
-                    readableStream.pipe(res);
+                    res.end(createHTTPServer.image);
                     break;
                 case '/binaryContent' :
                     res.setHeader('Content-Type', 'text/html');
                     res.writeHeader(200);
                     res.write('<html><body><img src="moron.jpeg"></body></html>');
+                    res.end();
+                    break;
+                case '/1MbitContent' :
+                    res.setHeader('Content-Type', 'text/plain');
+                    res.writeHeader(200);
+                    res.write(createHTTPServer.oneMbitBuffer);
                     res.end();
                     break;
                 default:

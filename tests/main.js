@@ -10,6 +10,7 @@ const webdriverio = require('webdriverio');
 const bmpClient = require('../index.js');
 const moronHTTP = require('./helper/moronHTTP.js');
 const seleniumHelper = require('./helper/seleniumHelper.js');
+const request = require('./helper/request.js');
 
 const configFileName = 'conf';
 
@@ -594,13 +595,11 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('work with blacklists - getBlackList(), setBlackList(), clearBlackList()', () => {
+        describe.skip('work with blacklists - getBlackList(), setBlackList(), clearBlackList()', () => {
 
             describe('getBlackList()', () => {
 
                 it('should return empty list of black domain, if we did not add domain before', (done) => {
-
-                    let browserMobProxyClient =  undefined;
 
                     (new bmpClient(bmpHost, bmpPort)).create()
                         .then((client) => {
@@ -724,6 +723,77 @@ describe('BrowserMob Proxy Client general test', () => {
 
                 });
 
+            });
+        });
+
+        describe('Limit the bandwidth through the proxy  - setLimits(), getLimits()', () => {
+
+            describe('setLimits()', () => {
+
+                it('should setup upstream bandwidth limit ', (done) => {
+
+                    const upstreamKbps = 100;
+                    const deltaInPercent = 10;
+                    const limitsSetterObject = { upstreamKbps : upstreamKbps};
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.newHar();
+                        })
+                        .then(() => {
+                            return request(`${moronHTTPUrl}/1MbitContent`,
+                                {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getHar();
+                        })
+                        .then((har) => {
+                            const duration = har.log.entries[0].timings.receive;
+                            const currentUpstreamSpeed = (moronHTTP.oneMbitBuffer.length / 1024) / (duration / 1000);
+
+                            let currentDeltaInPercent =  currentUpstreamSpeed/upstreamKbps * 100 - 100;
+                           
+                            if(currentDeltaInPercent > deltaInPercent){
+                                currentDeltaInPercent = upstreamKbps/currentUpstreamSpeed * 100 - 100;
+                                if(currentDeltaInPercent <= deltaInPercent) {
+                                    done();
+                                } else {
+                                    done(new Error('Delta between current upstream speed and expected is too big'));
+                                }
+                            } else {
+                                    done();
+                            }
+
+                        })
+                        .catch((value) => {
+                            console.log(value);
+                            done(new Error(value));});
+                });
+            });
+
+            describe('getLimits()',  () => {
+
+                it('should return limits', (done) => {
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            return client.getLimits();
+                        })
+                        .then((limits) => {
+                            limits.should.have.property('maxUpstreamKB', 0);
+                            limits.should.have.property('maxDownstreamKB', 0);
+                            limits.should.have.property('remainingUpstreamKB', 0);
+                            limits.should.have.property('remainingDownstreamKB', 0);
+                            done();
+                        })
+                        .catch((value) => {done(new Error(value));});
+                });
             });
         });
 
