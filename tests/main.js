@@ -822,7 +822,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it.skip('should setup dow many kilobytes in total the client is allowed to download through the proxy ',
+                it.skip('should setup how many kilobytes in total the client is allowed to download through the proxy ',
                     (done) => {
 
                     const downstreamMaxKB = 100;
@@ -846,7 +846,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it('should setup dow many kilobytes in total the client is allowed to upload through the proxy ',
+                it.skip('should setup how many kilobytes in total the client is allowed to upload through the proxy ',
                     (done) => {
 
                     const upstreamMaxKB = 100;
@@ -865,6 +865,51 @@ describe('BrowserMob Proxy Client general test', () => {
                         .then((limits) => {
                             limits.should.have.property('maxUpstreamKB').eql(upstreamMaxKB);
                             done();
+                        })
+                        .catch((value) => {
+                            console.log(value);
+                            done(new Error(value));});
+                });
+                it('should setup latency to each HTTP request', (done) => {
+
+                    const latency = 1000;
+                    const deltaInPercent = 10;
+                    const limitsSetterObject = { latency : latency};
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.newHar();
+                        })
+                        .then(() => {
+                            return request(`${moronHTTPUrl}`,
+                                {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getHar();
+                        })
+                        .then((har) => {
+
+                            const duration = har.log.entries[0].timings.send;
+                            const currentSpeed = (moronHTTP.oneMbitBuffer.length / 1024) / (duration / 1000);
+
+                            let currentDeltaInPercent =  currentSpeed/latency * 100 - 100;
+
+                            if(currentDeltaInPercent > deltaInPercent){
+                                currentDeltaInPercent = latency/currentSpeed * 100 - 100;
+                                if(currentDeltaInPercent <= deltaInPercent) {
+                                    done();
+                                } else {
+                                    done(new Error('Delta between current latency speed and expected is too big'));
+                                }
+                            } else {
+                                done();
+                            }
                         })
                         .catch((value) => {
                             console.log(value);
