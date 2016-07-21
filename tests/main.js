@@ -822,7 +822,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it('should setup dow many kilobytes in total the client is allowed to download through the proxy ',
+                it.skip('should setup dow many kilobytes in total the client is allowed to download through the proxy ',
                     (done) => {
 
                     const downstreamMaxKB = 100;
@@ -840,6 +840,30 @@ describe('BrowserMob Proxy Client general test', () => {
                         })
                         .then((limits) => {
                             limits.should.have.property('maxDownstreamKB').eql(downstreamMaxKB);
+                            done();
+                        })
+                        .catch((value) => {
+                            console.log(value);
+                            done(new Error(value));});
+                });
+                it('should setup dow many kilobytes in total the client is allowed to upload through the proxy ',
+                    (done) => {
+
+                    const upstreamMaxKB = 100;
+                    const limitsSetterObject = { upstreamMaxKB : upstreamMaxKB};
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getLimits();
+                        })
+                        .then((limits) => {
+                            limits.should.have.property('maxUpstreamKB').eql(upstreamMaxKB);
                             done();
                         })
                         .catch((value) => {
