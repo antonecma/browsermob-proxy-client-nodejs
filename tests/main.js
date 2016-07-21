@@ -775,7 +775,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it('should setup downstream bandwidth limit ', (done) => {
+                it.skip('should setup downstream bandwidth limit ', (done) => {
 
                     const downstreamKbps = 100;
                     const deltaInPercent = 10;
@@ -817,6 +817,30 @@ describe('BrowserMob Proxy Client general test', () => {
                                 done();
                             }
 
+                        })
+                        .catch((value) => {
+                            console.log(value);
+                            done(new Error(value));});
+                });
+                it('should setup dow many kilobytes in total the client is allowed to download through the proxy ',
+                    (done) => {
+
+                    const downstreamMaxKB = 100;
+                    const limitsSetterObject = { downstreamMaxKB : downstreamMaxKB};
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getLimits();
+                        })
+                        .then((limits) => {
+                            limits.should.have.property('maxDownstreamKB').eql(downstreamMaxKB);
+                            done();
                         })
                         .catch((value) => {
                             console.log(value);
