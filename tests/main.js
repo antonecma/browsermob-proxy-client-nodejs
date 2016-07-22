@@ -870,12 +870,17 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it('should setup latency to each HTTP request', (done) => {
+                /*
+                skip - look here : https://github.com/lightbody/browsermob-proxy/issues/510
+                 */
+                it.skip('should setup latency to each HTTP request', (done) => {
 
-                    const latency = 1000;
-                    const deltaInPercent = 10;
-                    const limitsSetterObject = { latency : latency};
+                    const upstreamKbps = 100;
+                    const deltaInPercent = 1;
+                    const enable = 'false';
 
+
+                    let limitsSetterObject = { upstreamKbps : upstreamKbps};
                     let browserMobProxyClient =  undefined;
 
                     (new bmpClient(bmpHost, bmpPort)).create()
@@ -884,32 +889,34 @@ describe('BrowserMob Proxy Client general test', () => {
                             return browserMobProxyClient.setLimits(limitsSetterObject);
                         })
                         .then(() => {
+                            limitsSetterObject = {enable : enable};
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
                             return browserMobProxyClient.newHar();
                         })
                         .then(() => {
-                            return request(`${moronHTTPUrl}`,
+                            return request(`${moronHTTPUrl}/1MbitContent`,
                                 {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
                         })
                         .then(() => {
                             return browserMobProxyClient.getHar();
                         })
                         .then((har) => {
+                            console.log(har.log.entries[0].timings);
+                            const duration = har.log.entries[0].timings.receive;
+                            const currentUpstreamSpeed = (moronHTTP.oneMbitBuffer.length / 1024) / (duration / 1000);
+                            const currentDeltaInPercent = (currentUpstreamSpeed > upstreamKbps) ?
+                                (100 - (currentUpstreamSpeed - upstreamKbps) / currentUpstreamSpeed * 100)
+                                : (100 - (upstreamKbps - currentUpstreamSpeed) / upstreamKbps * 100);
 
-                            const duration = har.log.entries[0].timings.send;
-                            const currentSpeed = (moronHTTP.oneMbitBuffer.length / 1024) / (duration / 1000);
-
-                            let currentDeltaInPercent =  currentSpeed/latency * 100 - 100;
-
-                            if(currentDeltaInPercent > deltaInPercent){
-                                currentDeltaInPercent = latency/currentSpeed * 100 - 100;
-                                if(currentDeltaInPercent <= deltaInPercent) {
-                                    done();
-                                } else {
-                                    done(new Error('Delta between current latency speed and expected is too big'));
-                                }
-                            } else {
+                            console.log(`duration : ${duration/1000}, curentDeltaInPercent : ${currentDeltaInPercent}%`);
+                            if(currentDeltaInPercent <= deltaInPercent) {
                                 done();
+                            } else {
+                                done(new Error('Delta between current upstream speed and expected is too big'));
                             }
+
                         })
                         .catch((value) => {
                             console.log(value);
