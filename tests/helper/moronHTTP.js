@@ -56,7 +56,7 @@ const createHTTPServer = (port = 58080) => {
                     req.on('data', (data) => {
                         return;
                     });
-                    req.on('end', () => {
+                    req.on('end', () => {                                           
                         res.setHeader('Content-Type', 'text/plain');
                         res.writeHeader(200);
                         res.end();                        
@@ -73,6 +73,7 @@ const createHTTPServer = (port = 58080) => {
             }
 
         });
+
     });
 };
 

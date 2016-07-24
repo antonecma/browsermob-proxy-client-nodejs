@@ -922,6 +922,59 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
+                /*
+                 skip - look here : https://github.com/lightbody/browsermob-proxy/issues/511
+                 */
+                it.skip('should setup percentage of data sent is payload', (done) => {
+
+                    const payloadPercentage = 1;
+                    const limitsSetterObject = { payloadPercentage : payloadPercentage};
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.newHar();
+                        })
+                        .then(() => {
+                            return request(`${moronHTTPUrl}/upload1Mbit`,
+                                {method : 'POST', form : {data : moronHTTP.oneMbitBuffer.toString()},
+                                    proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                        })
+                        .then(() => {
+                            console.log(`request is ended`);
+                            done(new Error('not tested'));
+                        })
+                        /*.then(() => {
+                            return browserMobProxyClient.getHar();
+                        })
+                        .then((har) => {
+                            console.log(har.log.entries[0].timings);
+                            const duration = har.log.entries[0].timings.receive;
+                            const currentUpstreamSpeed = (moronHTTP.oneMbitBuffer.length / 1024) / (duration / 1000);
+                            const currentDeltaInPercent = (currentUpstreamSpeed > upstreamKbps) ?
+                                (100 - (currentUpstreamSpeed - upstreamKbps) / currentUpstreamSpeed * 100)
+                                : (100 - (upstreamKbps - currentUpstreamSpeed) / upstreamKbps * 100);
+
+                            console.log(`duration : ${duration/1000}, curentDeltaInPercent : ${currentDeltaInPercent}%`);
+                            if(currentDeltaInPercent <= deltaInPercent) {
+                                done();
+                            } else {
+                                done(new Error('Delta between current upstream speed and expected is too big'));
+                            }
+
+                        })*/
+                        .catch((value) => {
+                            console.log(value);
+                            done(new Error(value));});
+                });
             });
 
             describe.skip('getLimits()',  () => {

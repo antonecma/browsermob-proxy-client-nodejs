@@ -4,7 +4,7 @@
     "port": 9090
   },
 
-  "bmpPath" : "./tests/utils/bmp/lib/browsermob-dist-2.1.1.jar",
+  "bmpPath" : "./tests/utils/bmp/2.1.2/lib/browsermob-dist-2.1.2.jar",
 
   "seleniumPort" : 4445,
   "seleniumPath" : "./tests/utils/selenium-2.53/selenium-server-standalone-2.53.1.jar"
