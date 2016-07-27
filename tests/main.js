@@ -822,6 +822,35 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
+                it('should setup latency', (done) => {
+
+                    const latency = 1000;
+                    const limitsSetterObject = { latency : latency};
+
+                    let browserMobProxyClient =  undefined;
+
+                    (new bmpClient(bmpHost, bmpPort)).create()
+                        .then((client) => {
+                            browserMobProxyClient = client;
+                            return browserMobProxyClient.setLimits(limitsSetterObject);
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.newHar();
+                        })
+                        .then(() => {
+                            return request(`${moronHTTPUrl}`, {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                        })
+                        .then(() => {
+                            return browserMobProxyClient.getHar();
+                        })
+                        .then((har) => {
+                            har.log.entries[0].timings.receive.should.be.aboveOrEqual(latency);
+                            done();
+                        })
+                        .catch((value) => {
+                            console.log(value);
+                            done(new Error(value));});
+                });
                 it.skip('should setup how many kilobytes in total the client is allowed to download through the proxy ',
                     (done) => {
 
@@ -873,7 +902,7 @@ describe('BrowserMob Proxy Client general test', () => {
                 /*
                 skip - look here : https://github.com/lightbody/browsermob-proxy/issues/510
                  */
-                it.skip('should setup latency to each HTTP request', (done) => {
+                it.skip('should disable limits', (done) => {
 
                     const upstreamKbps = 100;
                     const deltaInPercent = 1;
