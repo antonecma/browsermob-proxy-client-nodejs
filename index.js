@@ -358,22 +358,19 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-
+    /**
+     * Set and override HTTP Request headers
+     * @param {object} headers - Represents set of headers, Where key is a header name and value is a value of HTTP header
+     * @returns {Promise}
+     */
     setHeaders(headers) {
 
-        headers = headers || {};
+        const apiUrl = `${this.apiUrl}/headers`;
+        const options = { method : 'POST',  json : true, body : headers};
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/headers`;
-        try {
-            let options = { method : 'POST', json : true, body : headers};
-
-            return co(function* (){
-                let result = yield lpClass[bmpRequest](apiUrl, options);
-                return result;
-            });
-        } catch (err){
-            throw err;
-        }
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
     };
 
     overrideDNS (dns) {
