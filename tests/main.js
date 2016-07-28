@@ -726,7 +726,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('Limit the bandwidth through the proxy  - setLimits(), getLimits()', () => {
+        describe.skip('Limit the bandwidth through the proxy  - setLimits(), getLimits()', () => {
 
             describe('setLimits()', () => {
 
@@ -1023,6 +1023,48 @@ describe('BrowserMob Proxy Client general test', () => {
                         })
                         .catch((value) => {done(new Error(value));});
                 });
+            });
+        });
+
+        describe('Overrides normal DNS lookups and remaps the given hosts with the associated IP address - overrideDNS()', () => {
+
+            it('should overrides normal DNS lookups ', (done) => {
+
+                const overrideDNS = {};
+                const url = 'www.httpbin.org';
+                const wellFormedUrl = 'http://www.httpbin.org/';
+
+                let browserMobProxyClient =  undefined;
+                let seleniumInstance = undefined;
+
+                overrideDNS[url] = `http://localhost`;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.overrideDNS(overrideDNS);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        seleniumInstance = seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port);
+                        return seleniumInstance.url(url);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const status = har.log.entries.find((entry) => {
+                            return entry.request.url === wellFormedUrl;
+                        }).response;
+
+                        console.log(status);
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
             });
         });
 
