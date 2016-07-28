@@ -360,7 +360,7 @@ class browserMobProxyClientApi {
     };
     /**
      * Set and override HTTP Request headers
-     * @param {object} headers - Represents set of headers, Where key is a header name and value is a value of HTTP header
+     * @param {object} headers - Represents set of headers, where key is a header name and value is a value of HTTP header
      * @returns {Promise}
      */
     setHeaders(headers) {
@@ -373,16 +373,18 @@ class browserMobProxyClientApi {
         });
     };
 
+    /**
+     * Overrides normal DNS lookups and remaps the given hosts with the associated IP address
+     * @param {object} dns - Represents set of of hosts, where key is a host name and value is a IP address which associated with host name
+     * @returns {Promise}
+     */
     overrideDNS (dns) {
 
-        dns = dns || {};
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/headers`;
-        let options = { method : 'POST', json : dns};
+        const apiUrl = `${this.apiUrl}/hosts`;
+        const options = { method : 'POST',  json : true, body : dns};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
 
