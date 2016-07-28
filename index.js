@@ -143,17 +143,17 @@ const browserMobProxyClient = class browserMobProxyClient {
 /** Class - client for interaction with BrowserMob Proxy REST API Server. */
 class browserMobProxyClientApi {
 
-    constructor(urlServerAPI, clientHost, clientPort) {
+    constructor(urlServerAPI, clientHost, clientPort, trustAllServers = true) {
         //save url to BrowserMob Proxy API Server
         this.serverUrl = urlServerAPI;
 
         //api path and options
-        let apiUrl = `${this.serverUrl}/proxy`;
+        let apiUrl = `${this.serverUrl}/proxy?trustAllServers=${trustAllServers}`;
         const options = { method : 'POST' };
 
         //connect to external proxy, if needed
         if(clientHost && clientPort){
-            apiUrl = `${this.serverUrl}/proxy?httpProxy=${clientHost}:${clientPort}`;
+            apiUrl = `${this.serverUrl}/proxy?httpProxy=${clientHost}:${clientPort}&trustAllServers=${trustAllServers}`;
         }
         //create new proxy
         const self = this;
