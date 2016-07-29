@@ -387,6 +387,23 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
+    /**
+     * Sets automatic basic authentication for the specified domain. This method supports only BASIC authentication.
+     * @param {object} auth - Object describes authentication data
+     * @param {string} auth.username - Login
+     * @param {string} auth.password - Password
+     * @param {string} domain - At the domain will be applying basic auth
+     * @returns {Promise}
+     */
+    setAutoAuthentication (auth, domain) {
+
+        const apiUrl = `${this.apiUrl}/auth/basic/${domain}`;
+        const options = { method : 'POST',  json : true, body : auth};
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    }
 
     //does it work? test fails
     waitRequests({quitePeriodInMs = 0, timeoutInMs = 0}) {

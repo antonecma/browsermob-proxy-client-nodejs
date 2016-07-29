@@ -1033,7 +1033,7 @@ describe('BrowserMob Proxy Client general test', () => {
                 const overrideDNS = {};
                 const url = 'http://www.example.com:58080';
                 const urlToOverride = 'www.example.com';
-                const urlRemapped = '127.0.0.1';
+                const urlRemapped = bmpHost;
 
                 let browserMobProxyClient =  undefined;
 
@@ -1050,7 +1050,43 @@ describe('BrowserMob Proxy Client general test', () => {
                     .then(() => {
                         //Create new selenium session
                         return request(`${url}`,
-                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`, strictSSL : false, followAllRedirects : true});
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+        describe('Sets automatic basic authentication for the specified domain - setAutoAuthentication ()', () => {
+
+            it('should set automatic basic authentication  ', (done) => {
+
+                const auth = { 'username' : moronHTTP.authUserName, 'password' : moronHTTP.authPassword};
+                const domain  = bmpHost;
+
+                let browserMobProxyClient =  undefined;
+
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setAutoAuthentication(auth, domain);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/auth`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
                     })
                     .then(() => {
                         return browserMobProxyClient.getHar();
