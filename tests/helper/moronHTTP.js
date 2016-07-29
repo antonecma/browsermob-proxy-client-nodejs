@@ -18,6 +18,9 @@ const createHTTPServer = (port = 58080) => {
     createHTTPServer.image = (fs.readFileSync(pathToImage));
     createHTTPServer.imageBase64 = createHTTPServer.image.toString('base64');
     createHTTPServer.oneMbitBuffer = buffer.alloc(1024 * 1024, 74);
+    createHTTPServer.authUserName = 'user';
+    createHTTPServer.authPassword = 'password';
+
     fs.stat(pathToImage, (err, stat) => {
         createHTTPServer.imageSize = stat.size;
     });
@@ -62,6 +65,24 @@ const createHTTPServer = (port = 58080) => {
                         res.writeHeader(200);
                         res.end();                        
                     });
+                    break;
+                case '/auth':
+                    console.log(req.headers.authorization);
+                    if (req.headers.authorization) {
+                        const auth = new Buffer(req.headers.authorization.split(/\s+/).pop(), 'base64').toString();
+                        const user = auth.split(':')[0];
+                        const pass = auth.split(':')[1];
+                        if (user === createHTTPServer.authUserName && pass === createHTTPServer.authPassword) {
+                            res.setHeader('Content-Type', 'text/html');
+                            res.writeHeader(200);
+                            res.write(createHTTPServer.defaultContent);
+                        } else {
+                            res.writeHeader(401);
+                        }
+                    } else {
+                        res.writeHeader(401);
+                    }
+                    res.end();
                     break;
                 default:
                     res.setHeader('Content-Type', 'text/html');
