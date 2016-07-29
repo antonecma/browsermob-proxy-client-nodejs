@@ -217,7 +217,7 @@ describe('BrowserMob Proxy Client general test', () => {
                         for(let i = 0; i < responseCount; i++){
                             responseContents.push(har.log.entries[i].response.content.text);
                         }
-                        responseContents.should.containEql('<html><body><h1>MoronHTTP</h1></body></html>');
+                        responseContents.should.containEql(moronHTTP.defaultContent);
                         done();
                     })
                     .catch((value) => {done(new Error(value));});
@@ -1026,18 +1026,18 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('Overrides normal DNS lookups and remaps the given hosts with the associated IP address - overrideDNS()', () => {
+        describe.skip('Overrides normal DNS lookups and remaps the given hosts with the associated IP address - overrideDNS()', () => {
 
             it('should overrides normal DNS lookups ', (done) => {
 
                 const overrideDNS = {};
-                const url = 'www.httpbin.org';
-                const wellFormedUrl = 'http://www.httpbin.org/';
+                const url = 'http://www.example.com:58080';
+                const urlToOverride = 'www.example.com';
+                const urlRemapped = '127.0.0.1';
 
                 let browserMobProxyClient =  undefined;
-                let seleniumInstance = undefined;
 
-                overrideDNS[url] = `http://localhost`;
+                overrideDNS[urlToOverride] = urlRemapped;
 
                 (new bmpClient(bmpHost, bmpPort)).create()
                     .then((client) => {
@@ -1045,22 +1045,20 @@ describe('BrowserMob Proxy Client general test', () => {
                         return browserMobProxyClient.overrideDNS(overrideDNS);
                     })
                     .then(() => {
-                        return browserMobProxyClient.newHar();
+                        return browserMobProxyClient.newHar(true, true);
                     })
                     .then(() => {
                         //Create new selenium session
-                        seleniumInstance = seleniumHelper.initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port);
-                        return seleniumInstance.url(url);
+                        return request(`${url}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`, strictSSL : false, followAllRedirects : true});
                     })
                     .then(() => {
                         return browserMobProxyClient.getHar();
                     })
                     .then((har) => {
-                        const status = har.log.entries.find((entry) => {
-                            return entry.request.url === wellFormedUrl;
-                        }).response;
-
-                        console.log(status);
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(moronHTTP.defaultContent);
+                        done();
                     })
                     .catch((value) => {
                         console.log(value);

@@ -14,6 +14,7 @@ const createHTTPServer = (port = 58080) => {
     const pathToImage = path.join(moronLocalPath, imageName);
 
     createHTTPServer.imageName = imageName;
+    createHTTPServer.defaultContent = '<html><body><h1>MoronHTTP</h1></body></html>';
     createHTTPServer.image = (fs.readFileSync(pathToImage));
     createHTTPServer.imageBase64 = createHTTPServer.image.toString('base64');
     createHTTPServer.oneMbitBuffer = buffer.alloc(1024 * 1024, 74);
@@ -67,7 +68,7 @@ const createHTTPServer = (port = 58080) => {
                     res.setHeader('Header1', 'value1');
                     res.setHeader('Header2', 'value2');
                     res.writeHeader(200);
-                    res.write('<html><body><h1>MoronHTTP</h1></body></html>');
+                    res.write(createHTTPServer.defaultContent);
                     res.end();
                     break;
             }
