@@ -62,6 +62,10 @@ const createHTTPServer = (port = 58080) => {
                         res.end();                        
                     });
                     break;
+                case '/returnHeaders' :
+                    res.writeHeader(200, {'Content-Type' : 'application/json'});
+                    res.end(JSON.stringify(req.headers));
+                    break;
                 default:
                     res.setHeader('Content-Type', 'text/html');
                     res.setHeader('Header1', 'value1');

@@ -359,7 +359,8 @@ class browserMobProxyClientApi {
         });
     };
     /**
-     * Set and override HTTP Request headers
+     * Set and override HTTP Request headers. Overrides only headers that has been set before, by this method.
+     * Also, this method adds header-value, but doesn't override it, if headers has been set before without his participation.
      * @param {object} headers - Represents set of headers, Where key is a header name and value is a value of HTTP header
      * @returns {Promise}
      */
