@@ -1284,9 +1284,9 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('Setting the retry count', () => {
+        describe.skip('Setting the retry count - setRetries()', () => {
 
-            it('should set retrie number - setRetries()', (done) => {
+            it('should set retries number - setRetries()', (done) => {
 
                 const retries = 5;
                 let browserMobProxyClient =  undefined;
@@ -1310,6 +1310,39 @@ describe('BrowserMob Proxy Client general test', () => {
                         const content = har.log.entries[0].response.content.text;
                         content.should.be.equal(retries);
                         done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+        });
+
+        //TODO write a right tests suite for clearDNSCache() method.
+
+        describe('Empties the DNS cache - clearDNSCache()', () => {
+
+            it('should clear DNS cache - setRetries()', (done) => {
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.clearDNSCache();
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        done(new Error('No test yet!'));
                     })
                     .catch((value) => {
                         console.log(value);

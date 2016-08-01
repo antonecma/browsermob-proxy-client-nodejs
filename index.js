@@ -499,6 +499,19 @@ class browserMobProxyClientApi {
         });
     };
 
+    /**
+     * Empties the DNS cache
+     * @returns {Promise}
+     */
+    clearDNSCache(){
+
+        const apiUrl = `${this.apiUrl}/dns/cache`;
+        const options = { method : 'DELETE'};
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    };
     //does this method clear the DNS cache?
     clearCache(){
 
