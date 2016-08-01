@@ -50,6 +50,13 @@ const createHTTPServer = (port = 58080) => {
                     res.write('<html><body><img src="moron.jpeg"></body></html>');
                     res.end();
                     break;
+                case '/retries' :
+                    res.setHeader('Content-Type', 'text/html');
+                    res.writeHeader(200);
+                    //TODO should return number of retries.
+                    res.write('retries');
+                    res.end();
+                    break;
                 case '/1MbitContent' :
                     res.setHeader('Content-Type', 'text/plain');
                     res.writeHeader(200);

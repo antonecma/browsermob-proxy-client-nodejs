@@ -1284,7 +1284,39 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
+        describe.skip('Setting the retry count', () => {
 
+            it('should set retrie number - setRetries()', (done) => {
+
+                const retries = 5;
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setRetries(retries);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}//retries`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(retries);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+        });
 
     });
 

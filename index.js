@@ -484,14 +484,18 @@ class browserMobProxyClientApi {
         });
     };
 
-    removeRedirectedUrls(){
+    /**
+     * Setting the retry count
+     * @param {number} numberOfTries - The number of times a method will be retried
+     * @returns {Promise}
+     */
+    setRetries(numberOfTries){
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/rewrite`;
-        let options = { method : 'DELETE'};
+        const apiUrl = `${this.apiUrl}/retry`;
+        const options = { method : 'PUT',  form : {retrycount : numberOfTries}};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
 
