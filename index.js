@@ -427,29 +427,32 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     }
-    //does it work? test fails
-    waitRequests({quitePeriodInMs = 0, timeoutInMs = 0}) {
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/wait`;
-        let options = { method : 'PUT', form : {quitePeriodInMs : quitePeriodInMs, timeoutInMs : timeoutInMs}};
+    /**
+     * Handles different proxy timeouts. The new LittleProxy implementation requires that all timeouts be set before start Proxy, because of it tests skipped.
+     * @param {object} timeoutObj - Describes timeout object
+     * @param {number} requestTimeout - Request timeout in milliseconds. timeout value of -1 is interpreted as infinite timeout.
+     * @param {number} readTimeout  - Read timeout in milliseconds. Which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.
+     * @param {number} connectionTimeout  - Determines the timeout in milliseconds until a connection is established. A timeout value of zero is interpreted as an infinite timeout.
+     * @param {number} dnsCacheTimeout  -  Sets the maximum length of time that records will be stored in this Cache. A nonpositive value disables this feature
+     * @returns {Promise}
+     */
+    setTimeouts(timeoutObj){
+
+        for(let timeoutProperty in timeoutObj) {
+            timeoutObj[timeoutProperty] = timeoutObj[timeoutProperty].toString();
+        }
+
+        const apiUrl = `${this.apiUrl}/timeout`;
+        const options = { method : 'PUT',  json : true, body : timeoutObj};
+
+
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
-    };
+    }
 
-    //does not significant than payload must be in json coded type?
-    setTimeouts({requestTimeout = -1, readTimeout = 60000, connectionTimeout = 60000, dnsCacheTimeout = 0}) {
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/timeout`;
-        let options = { method : 'PUT', json : {requestTimeout : requestTimeout, readTimeout : readTimeout,
-            connectionTimeout : connectionTimeout, dnsCacheTimeout : dnsCacheTimeout}};
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
 
     redirectUrls({matchRegex = '', replace = ''}) {
         let apiUrl = `${this.url}/proxy/${this._lpPort}/rewrite`;

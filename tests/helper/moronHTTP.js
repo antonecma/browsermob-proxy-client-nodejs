@@ -56,6 +56,15 @@ const createHTTPServer = (port = 58080) => {
                     res.write(createHTTPServer.oneMbitBuffer);
                     res.end();
                     break;
+                case '/readTimeout' :
+                    res.setHeader('Content-Type', 'text/plain');
+                    res.writeHeader(200);
+                    res.write(createHTTPServer.oneMbitBuffer, () => {
+                        setTimeout(() => {
+                            res.end();
+                        }, 10000);
+                    });
+                    break;
                 case '/upload1Mbit':
                     req.on('data', (data) => {
                         return;

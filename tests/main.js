@@ -1144,6 +1144,73 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
+        describe('Handles different proxy timeouts', () => {
+            //TODO write a right test for 'requestTimeout' param. See here : https://github.com/lightbody/browsermob-proxy/blob/9443605d3e6458248831663ab19e041c0859316f/browsermob-core/src/main/java/net/lightbody/bmp/BrowserMobProxyServer.java#L695
+            it('should set request timeout', (done) => {
+
+                const requestTimeout = 1;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setTimeouts({requestTimeout : requestTimeout});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/readTimeout`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        har.log.entries.forEach((entry) => {
+
+                            console.log(entry.timings);
+                        });
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+            it('should set read timeout', (done) => {
+
+                const readTimeout = 1;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setTimeouts({readTimeout : readTimeout});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/readTimeout`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        har.log.entries.forEach((entry) => {
+
+                            console.log(entry.timings);
+                        });
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
     });
 
     after((done) => {
