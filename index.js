@@ -453,14 +453,34 @@ class browserMobProxyClientApi {
         });
     }
 
+    /**
+     * Redirecting URL's
+     * @param redirectObj - Describes redirect object
+     * @param {string} redirectObj.matchRegex - a matching URL regular expression
+     * @param {string} redirectObj.replace - replacement URL
+     * @returns {Promise}
+     */
+    setRedirectUrls(redirectObj){
 
-    redirectUrls({matchRegex = '', replace = ''}) {
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/rewrite`;
-        let options = { method : 'PUT', form : {matchRegex : matchRegex, replace : replace}};
+        const apiUrl = `${this.apiUrl}/rewrite`;
+        const options = { method : 'PUT',  form : redirectObj};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    };
+
+    /**
+     * Removes all URL redirection rules currently in effect
+     * @returns {Promise}
+     */
+    removeRedirects(){
+
+        const apiUrl = `${this.apiUrl}/rewrite`;
+        const options = { method : 'DELETE'};
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
 

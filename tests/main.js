@@ -1144,7 +1144,8 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('Handles different proxy timeouts', () => {
+        //TODO write a right a nd all tests suite for setTimeouts() method.
+        describe.skip('Handles different proxy timeouts - setTimeouts()', () => {
             //TODO write a right test for 'requestTimeout' param. See here : https://github.com/lightbody/browsermob-proxy/blob/9443605d3e6458248831663ab19e041c0859316f/browsermob-core/src/main/java/net/lightbody/bmp/BrowserMobProxyServer.java#L695
             it('should set request timeout', (done) => {
 
@@ -1210,6 +1211,80 @@ describe('BrowserMob Proxy Client general test', () => {
                         done(new Error(value));});
             });
         });
+
+        describe.skip('Redirecting URL\'s - setRedirectUrls(), removeRedirects()', () => {
+
+            it('should set redirect url - setRedirectUrls()', (done) => {
+
+                const replace = `${moronHTTPUrl}`;
+                const match = `https?://www\\.google\\.com/.*`;
+                const url = 'http://www.google.com';
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setRedirectUrls({matchRegex : match, replace : replace});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${url}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+            it('should delete redirect url - removeRedirects()', (done) => {
+
+                const replace = `${moronHTTPUrl}`;
+                const match = `https?://www\\.google\\.com/.*`;
+                const url = 'http://www.google.com';
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setRedirectUrls({matchRegex : match, replace : replace});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.removeRedirects();
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${url}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.not.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+
 
     });
 
