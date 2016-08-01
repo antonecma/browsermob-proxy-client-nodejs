@@ -1066,7 +1066,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe('Sets automatic basic authentication for the specified domain - setAutoAuthentication ()', () => {
+        describe.skip('Sets automatic basic authentication for the specified domain - setAutoAuthentication ()', () => {
 
             it('should set automatic basic authentication  ', (done) => {
 
@@ -1094,6 +1094,48 @@ describe('BrowserMob Proxy Client general test', () => {
                     .then((har) => {
                         const content = har.log.entries[0].response.content.text;
                         content.should.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+        //TODO write a right test suite for setWait() method. See here : https://github.com/lightbody/browsermob-proxy/blob/f65e9b3aea1672a8b6b121a7a7c41f973e7cfedf/browsermob-core/src/main/java/net/lightbody/bmp/BrowserMobProxy.java#L552
+        describe.skip('Wait till all request are being made - setWait()', () => {
+
+            it('should ...', (done) => {
+
+                const quietPeriodInMs = 5000;
+
+                let browserMobProxyClient =  undefined;
+                let startTime = undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        startTime = Date.now();
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        browserMobProxyClient.setWait({quietPeriodInMs : quietPeriodInMs, timeoutInMs : quietPeriodInMs});
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+
+                    })
+                    .then(() => {
+                        console.log(`time : ${Date.now() - startTime}`);
+                        startTime = Date.now();
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        console.log(har.log.entries)
+                        console.log(`time : ${Date.now() - startTime}`);
                         done();
                     })
                     .catch((value) => {

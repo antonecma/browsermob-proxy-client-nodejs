@@ -405,6 +405,28 @@ class browserMobProxyClientApi {
         });
     }
 
+    /**
+     * Wait till all request are being made
+     * @param {object} waitObject - Object describes waits data
+     * @param {number} waitObject.quietPeriodInMs - amount of time after which network traffic will be considered "stopped"
+     * @param {number} waitObject.timeoutInMs - maximum amount of time to wait for network traffic to stop
+     * @returns {Promise}
+     */
+    setWait(waitObject){
+
+        for(let waitProperty in waitObject) {
+            waitObject[waitProperty] = waitObject[waitProperty].toString();
+        }
+
+        const apiUrl = `${this.apiUrl}/wait`;
+        const options = { method : 'PUT',  form : waitObject};
+
+
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    }
     //does it work? test fails
     waitRequests({quitePeriodInMs = 0, timeoutInMs = 0}) {
 
