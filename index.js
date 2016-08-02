@@ -192,9 +192,16 @@ const browserMobProxyClient = class browserMobProxyClient {
 
 /** Class - client for interaction with BrowserMob Proxy REST API Server. */
 class browserMobProxyClientApi {
-
+    /**
+     * Create {@link browserMobProxyClientApi} instance
+     * @param {string} urlServerAPI - url to BrowserMob Proxy was started before.
+     * @param {string} [clientHost] - host of upstream proxy server. If you want work trough upstream proxy server.
+     * @param {number} [clientPort] - tcp port of upstream proxy server.
+     * @param {boolean} [trustAllServers=true] - ignore or not certificate errors
+     * @returns {Promise< browserMobProxyClientApi | Error>}
+     */
     constructor(urlServerAPI, clientHost, clientPort, trustAllServers = true) {
-        //save url to BrowserMob Proxy API Server
+
         this.serverUrl = urlServerAPI;
 
         //api path and options
@@ -215,8 +222,20 @@ class browserMobProxyClientApi {
             return self;
         });
     };
+    /**
+     * Object that represent {@link http://www.softwareishard.com/blog/har-12-spec|HAR}
+     * @typedef {object} promiseRequestBody
+     */
 
-    //new version
+    /**
+     * Creates a new HAR attached to the proxy and returns the HAR content if there was a previous HAR
+     * @param {boolean} [boolCaptureHeaders=true] - capture headers or not
+     * @param {boolean} [boolCaptureBody=false] - capture content bodies or not
+     * @param {boolean} [boolCaptureAllContent=false] - capture binary content or not.
+     * @param {string} [pageRef='Page 1'] - the string name of the first page ref that should be used in the HAR
+     * @param {string} [pageTitle='Page 1'] - the title of first HAR page
+     * @returns {Promise< harObject | Error>}
+     */
     newHar(boolCaptureHeaders = true, boolCaptureBody = false, boolCaptureAllContent = false, pageRef, pageTitle) {
 
         const form = {captureHeaders : boolCaptureHeaders, captureContent : boolCaptureBody, captureBinaryContent : boolCaptureAllContent};
