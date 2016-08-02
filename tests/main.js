@@ -1320,9 +1320,9 @@ describe('BrowserMob Proxy Client general test', () => {
 
         //TODO write a right tests suite for clearDNSCache() method.
 
-        describe('Empties the DNS cache - clearDNSCache()', () => {
+        describe.skip('Empties the DNS cache - clearDNSCache()', () => {
 
-            it('should clear DNS cache - setRetries()', (done) => {
+            it('should clear DNS cache - clearDNSCache()', (done) => {
 
                 let browserMobProxyClient =  undefined;
 
@@ -1347,6 +1347,78 @@ describe('BrowserMob Proxy Client general test', () => {
                     .catch((value) => {
                         console.log(value);
                         done(new Error(value));});
+            });
+
+        });
+
+        describe.skip('Describe your own request interception - setRequestInterception()', () => {
+
+            it('should set userAgent by interception - setRequestInterception()', (done) => {
+
+                const headerName = 'User-Agent';
+                const headerValue = 'INTERCEPTION';
+                const interceptionRule = `request.headers().add('${headerName}', '${headerValue}');`;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.clearDNSCache();
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.setRequestInterception(interceptionRule);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const userAgent = har.log.entries[0].request.headers.find((header) => {
+                            return header.name === headerName;
+                        });
+                        userAgent.value.should.be.equal(headerValue);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+        });
+
+        describe('Describe your own response interception - setResponseInterception()', () => {
+
+            it('should change response content by interception - setResponseInterception()', (done) => {
+
+                const interceptionContent = 'INTERCEPTION';
+                const interceptionRule = `contents.setTextContents('${interceptionContent}');`;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setResponseInterception(interceptionRule);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/plain`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then((response) => {
+                        response.should.be.equal(interceptionContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));
+                    });
             });
 
         });

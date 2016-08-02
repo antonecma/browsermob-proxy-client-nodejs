@@ -18,7 +18,7 @@ const promiseRequest = (url, anyParam) => {
                     try {
                         if(response.statusCode == 200 || response.statusCode == 204){
                             console.log('parsed status (OK) : ', response.statusCode);
-                            return resolve();
+                            return resolve(body);
                         } else {
                             console.log('parsed status (FAIL) : ', response.statusCode);
                             return reject(response);

@@ -512,52 +512,36 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-    //does this method clear the DNS cache?
-    clearCache(){
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/dns/cache`;
-        let options = { method : 'DELETE'};
+    /**
+     * Describe your own request interception
+     * @param {string} rule - a string which determines interceptor rules.
+     * @returns {Promise}
+     */
+    setRequestInterception (rule) {
 
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
-
-    setAuthToDomain({domain,  username, password}){
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/auth/basic/${domain}`;
-        let options = { method : 'POST', json : {username : username, password : password}};
+        const apiUrl = `${this.apiUrl}/filter/request`;
+        const options = { method : 'POST',  body : rule};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
-    };
+    }
 
-    changeHeader({headerName, headerValue}) {
+    /**
+     * Describe your own response interception
+     * @param {string} rule - a string which determines interceptor rules.
+     * @returns {Promise}
+     */
+    setResponseInterception (rule) {
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/filter/request`;
-        let options = { method : 'POST',
-            body : `request.headers().remove('${headerName}'); request.headers().add('${headerName}', '${headerValue}');`};
+        const apiUrl = `${this.apiUrl}/filter/response`;
+        const options = { method : 'POST',  body : rule};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
-    };
-
-    deleteHeader({headerName}) {
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/filter/request`;
-        let options = { method : 'POST',
-            body : `request.headers().remove('${headerName}');`};
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
+    }
 };
 
 const typedBrowserMobProxyClient = new typed(browserMobProxyClient, typesBrowserMobProxyClient);
