@@ -96,7 +96,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
     });
 
-    describe.skip('BrowserMob Proxy Client Class', () =>{
+    describe('BrowserMob Proxy Client Class', () =>{
 
         it('should contain url to REST API server', () => {
             ((new bmpClient(bmpHost, bmpPort)).url).should.be.eql(`http://${bmpHost}:${bmpPort}`);

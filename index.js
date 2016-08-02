@@ -38,8 +38,17 @@ const clients = Symbol();
 const closeProxyMethod = Symbol();
 const bmpRequest = Symbol();
 
+/**
+ * Class which is used for service set of browserMob Proxy instances.
+ * @type {browserMobProxyClient}
+ */
 const browserMobProxyClient = class browserMobProxyClient {
 
+    /**
+     * Creates {@link browserMobProxyClient} new instance.
+     * @param {string} ip4Host - ip address of host, where BrowserMob Proxy has started.
+     * @param {number} portPort - tcp port, where BrowserMob Proxy has started.
+     */
     constructor(ip4Host, portPort){
 
         this.host = ip4Host;
@@ -48,7 +57,19 @@ const browserMobProxyClient = class browserMobProxyClient {
         this[clients] = [];
 
     };
+    /**
+     * Object that represent body of server answer.
+     * @typedef {object} promiseRequestBody
+     */
 
+    /**
+     * Promise version of {@link https://github.com/request/request|request}. It's used only for internal purpose,
+     * access to it is restricted by using private Symbol() variable.
+     * @private
+     * @param {string} urlApi - url for REST API method.
+     * @param {object} [anyParam] - any parameters of request, such as method, json, etc.
+     * @returns {Promise<promiseRequestBody, Error>} JSON parsed object of response body if fulfill, Error otherwise
+     */
     static [bmpRequest](urlApi, anyParam) {
 
         anyParam = anyParam || {method : 'GET'};
@@ -86,6 +107,16 @@ const browserMobProxyClient = class browserMobProxyClient {
         });
     };
 
+    /**
+     * Object that represent proxy info
+     * @typedef {object} proxyInfo
+     * @property port {number} tcp port, where proxy was started
+     */
+
+    /**
+     * Receives list of all proxies, which were started.
+     * @returns {Promise<proxyInfo[]>}
+     */
     getProxiesList() {
 
         const apiUrl = `${this.url}/proxy`;
@@ -96,6 +127,11 @@ const browserMobProxyClient = class browserMobProxyClient {
         });
     };
 
+    /** Closes a proxy
+     * @private
+     * @param {number} portProxy - tcp port, where proxy was started
+     * @returns {Promise<promiseRequestBody, Error>}
+     */
     [closeProxyMethod](portProxy) {
 
         const apiUrl = `${this.url}/proxy/${portProxy}`;
@@ -104,6 +140,10 @@ const browserMobProxyClient = class browserMobProxyClient {
         return browserMobProxyClient[bmpRequest](apiUrl, options);
     };
 
+    /**
+     * Creates new instance of {@link browserMobProxyClientApi}
+     * @returns {Promise<browserMobProxyClientApi, Error>}
+     */
     create() {
 
         const self = this;
@@ -114,6 +154,11 @@ const browserMobProxyClient = class browserMobProxyClient {
             return client;
         });
     };
+
+    /**
+     *  Returns own proxy list. Returned proxies belong only to current instance of {@link browserMobProxyClient}
+     * @returns {Promise< proxyInfo[] | Error>}
+     */
     getOwnProxiesList(){
         const self = this;
 
@@ -126,6 +171,11 @@ const browserMobProxyClient = class browserMobProxyClient {
             return proxyList;
         });
     };
+
+    /**
+     * Closes all proxies belong to current instance of {@link browserMobProxyClient}
+     * @returns {Promise | Error}
+     */
     closeAllOwnProxies() {
         const self = this;
 
@@ -431,10 +481,10 @@ class browserMobProxyClientApi {
     /**
      * Handles different proxy timeouts. The new LittleProxy implementation requires that all timeouts be set before start Proxy, because of it tests skipped.
      * @param {object} timeoutObj - Describes timeout object
-     * @param {number} requestTimeout - Request timeout in milliseconds. timeout value of -1 is interpreted as infinite timeout.
-     * @param {number} readTimeout  - Read timeout in milliseconds. Which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.
-     * @param {number} connectionTimeout  - Determines the timeout in milliseconds until a connection is established. A timeout value of zero is interpreted as an infinite timeout.
-     * @param {number} dnsCacheTimeout  -  Sets the maximum length of time that records will be stored in this Cache. A nonpositive value disables this feature
+     * @param {number} timeoutObj.requestTimeout - Request timeout in milliseconds. timeout value of -1 is interpreted as infinite timeout.
+     * @param {number} timeoutObj.readTimeout  - Read timeout in milliseconds. Which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.
+     * @param {number} timeoutObj.connectionTimeout  - Determines the timeout in milliseconds until a connection is established. A timeout value of zero is interpreted as an infinite timeout.
+     * @param {number} timeoutObj.dnsCacheTimeout  -  Sets the maximum length of time that records will be stored in this Cache. A nonpositive value disables this feature
      * @returns {Promise}
      */
     setTimeouts(timeoutObj){
