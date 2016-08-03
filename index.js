@@ -257,6 +257,13 @@ class browserMobProxyClientApi {
         });
     };
     //new version
+    /**
+     * Starts a new page on the existing HAR
+     * @param {object} [newPageTitleObject] -
+     * @param {string} [pageRef='Page N'] - The string name of the first page ref that should be used in the HAR.
+     * @param {string} [pageTitle='Page N'] - The title of new HAR page
+     * @returns {Promise<undefined | Error>}
+     */
     startPage({pageRef, pageTitle} = {}) {
         const form = {};
 
@@ -274,7 +281,11 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl,options);
         });
     };
-    //new version
+
+    /**
+     * Shuts down the proxy and closes the port.
+     * @returns {Promise<undefined | Error>}
+     */
     close() {
         const apiUrl = `${this.apiUrl}`;
         const options = {method : 'DELETE'};
@@ -283,7 +294,12 @@ class browserMobProxyClientApi {
             return browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-    //new version
+
+    /**
+     * Returns the JSON/HAR content representing all the HTTP traffic passed through the proxy
+     * (provided you have already created the HAR with this {@link browserMobProxyClientApi#newHar|method})
+     * @returns {Promise< harObject | Error>}
+     */
     getHar() {
         const apiUrl = `${this.apiUrl}/har`;
         let options = { method : 'GET' };
@@ -293,7 +309,11 @@ class browserMobProxyClientApi {
             return result;
         });
     };
-    //new version
+
+    /**
+     * Displays whitelisted items
+     * @returns {Promise<string[] | Error>} - Array of urls which have set before
+     */
     getWhiteList() {
 
         const apiUrl = `${this.apiUrl}/whitelist`;
@@ -304,7 +324,13 @@ class browserMobProxyClientApi {
             return result;
         });
     };
-    //new version
+
+    /**
+     * Sets a list of URL patterns to whitelist
+     * @param {string} httpCodeStatus - the HTTP status code to return for URLs that do not match the whitelist.
+     * @param {string} regexps - a comma separated list of regular expressions.
+     * @returns {Promise<undefined | Error>}
+     */
     setWhiteList(httpCodeStatus, regexps) {
 
         const apiUrl = `${this.apiUrl}/whitelist`;
@@ -314,7 +340,11 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-    //new version
+
+    /**
+     * Clears all URL patterns from the whitelist
+     * @returns {Promise<undefined | Error>}
+     */
     clearWhiteList() {
 
         const apiUrl = `${this.apiUrl}/whitelist`;
@@ -324,7 +354,11 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-    //new version
+
+    /**
+     * Displays blacklisted items
+     * @returns {Promise<BlackListedUrl[] | Error>}
+     */
     getBlackList() {
 
         const apiUrl = `${this.apiUrl}/blacklist`;
@@ -368,6 +402,10 @@ class browserMobProxyClientApi {
         });
     };
     //new version
+    /**
+     * Clears all URL patterns from the blacklist
+     * @returns {Promise<undefined | Error>}
+     */
     clearBlackList() {
 
         const apiUrl = `${this.apiUrl}/blacklist`;
