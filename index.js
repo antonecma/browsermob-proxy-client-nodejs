@@ -38,8 +38,17 @@ const clients = Symbol();
 const closeProxyMethod = Symbol();
 const bmpRequest = Symbol();
 
+/**
+ * Class which is used for service set of browserMob Proxy instances.
+ * @type {browserMobProxyClient}
+ */
 const browserMobProxyClient = class browserMobProxyClient {
 
+    /**
+     * Creates {@link browserMobProxyClient} new instance.
+     * @param {string} ip4Host - ip address of host, where BrowserMob Proxy has started.
+     * @param {number} portPort - tcp port, where BrowserMob Proxy has started.
+     */
     constructor(ip4Host, portPort){
 
         this.host = ip4Host;
@@ -48,7 +57,19 @@ const browserMobProxyClient = class browserMobProxyClient {
         this[clients] = [];
 
     };
+    /**
+     * Object that represent body of server answer.
+     * @typedef {object} promiseRequestBody
+     */
 
+    /**
+     * Promise version of {@link https://github.com/request/request|request}. It's used only for internal purpose,
+     * access to it is restricted by using private Symbol() variable.
+     * @private
+     * @param {string} urlApi - url for REST API method.
+     * @param {object} [anyParam] - any parameters of request, such as method, json, etc.
+     * @returns {Promise<promiseRequestBody, Error>} JSON parsed object of response body if fulfill, Error otherwise
+     */
     static [bmpRequest](urlApi, anyParam) {
 
         anyParam = anyParam || {method : 'GET'};
@@ -86,6 +107,16 @@ const browserMobProxyClient = class browserMobProxyClient {
         });
     };
 
+    /**
+     * Object that represent proxy info
+     * @typedef {object} proxyInfo
+     * @property port {number} tcp port, where proxy was started
+     */
+
+    /**
+     * Receives list of all proxies, which were started.
+     * @returns {Promise<proxyInfo[]>}
+     */
     getProxiesList() {
 
         const apiUrl = `${this.url}/proxy`;
@@ -96,6 +127,11 @@ const browserMobProxyClient = class browserMobProxyClient {
         });
     };
 
+    /** Closes a proxy
+     * @private
+     * @param {number} portProxy - tcp port, where proxy was started
+     * @returns {Promise<promiseRequestBody, Error>}
+     */
     [closeProxyMethod](portProxy) {
 
         const apiUrl = `${this.url}/proxy/${portProxy}`;
@@ -104,6 +140,10 @@ const browserMobProxyClient = class browserMobProxyClient {
         return browserMobProxyClient[bmpRequest](apiUrl, options);
     };
 
+    /**
+     * Creates new instance of {@link browserMobProxyClientApi}
+     * @returns {Promise<browserMobProxyClientApi, Error>}
+     */
     create() {
 
         const self = this;
@@ -114,6 +154,11 @@ const browserMobProxyClient = class browserMobProxyClient {
             return client;
         });
     };
+
+    /**
+     *  Returns own proxy list. Returned proxies belong only to current instance of {@link browserMobProxyClient}
+     * @returns {Promise< proxyInfo[] | Error>}
+     */
     getOwnProxiesList(){
         const self = this;
 
@@ -126,6 +171,11 @@ const browserMobProxyClient = class browserMobProxyClient {
             return proxyList;
         });
     };
+
+    /**
+     * Closes all proxies belong to current instance of {@link browserMobProxyClient}
+     * @returns {Promise | Error}
+     */
     closeAllOwnProxies() {
         const self = this;
 
@@ -142,18 +192,25 @@ const browserMobProxyClient = class browserMobProxyClient {
 
 /** Class - client for interaction with BrowserMob Proxy REST API Server. */
 class browserMobProxyClientApi {
+    /**
+     * Create {@link browserMobProxyClientApi} instance
+     * @param {string} urlServerAPI - url to BrowserMob Proxy was started before.
+     * @param {string} [clientHost] - host of upstream proxy server. If you want work trough upstream proxy server.
+     * @param {number} [clientPort] - tcp port of upstream proxy server.
+     * @param {boolean} [trustAllServers=true] - ignore or not certificate errors
+     * @returns {Promise< browserMobProxyClientApi | Error>}
+     */
+    constructor(urlServerAPI, clientHost, clientPort, trustAllServers = true) {
 
-    constructor(urlServerAPI, clientHost, clientPort) {
-        //save url to BrowserMob Proxy API Server
         this.serverUrl = urlServerAPI;
 
         //api path and options
-        let apiUrl = `${this.serverUrl}/proxy`;
+        let apiUrl = `${this.serverUrl}/proxy?trustAllServers=${trustAllServers}`;
         const options = { method : 'POST' };
 
         //connect to external proxy, if needed
         if(clientHost && clientPort){
-            apiUrl = `${this.serverUrl}/proxy?httpProxy=${clientHost}:${clientPort}`;
+            apiUrl = `${this.serverUrl}/proxy?httpProxy=${clientHost}:${clientPort}&trustAllServers=${trustAllServers}`;
         }
         //create new proxy
         const self = this;
@@ -165,8 +222,20 @@ class browserMobProxyClientApi {
             return self;
         });
     };
+    /**
+     * Object that represent {@link http://www.softwareishard.com/blog/har-12-spec|HAR}
+     * @typedef {object} promiseRequestBody
+     */
 
-    //new version
+    /**
+     * Creates a new HAR attached to the proxy and returns the HAR content if there was a previous HAR
+     * @param {boolean} [boolCaptureHeaders=true] - capture headers or not
+     * @param {boolean} [boolCaptureBody=false] - capture content bodies or not
+     * @param {boolean} [boolCaptureAllContent=false] - capture binary content or not.
+     * @param {string} [pageRef='Page 1'] - the string name of the first page ref that should be used in the HAR
+     * @param {string} [pageTitle='Page 1'] - the title of first HAR page
+     * @returns {Promise< harObject | Error>}
+     */
     newHar(boolCaptureHeaders = true, boolCaptureBody = false, boolCaptureAllContent = false, pageRef, pageTitle) {
 
         const form = {captureHeaders : boolCaptureHeaders, captureContent : boolCaptureBody, captureBinaryContent : boolCaptureAllContent};
@@ -188,6 +257,13 @@ class browserMobProxyClientApi {
         });
     };
     //new version
+    /**
+     * Starts a new page on the existing HAR
+     * @param {object} [newPageTitleObject] -
+     * @param {string} [pageRef='Page N'] - The string name of the first page ref that should be used in the HAR.
+     * @param {string} [pageTitle='Page N'] - The title of new HAR page
+     * @returns {Promise<undefined | Error>}
+     */
     startPage({pageRef, pageTitle} = {}) {
         const form = {};
 
@@ -205,7 +281,11 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl,options);
         });
     };
-    //new version
+
+    /**
+     * Shuts down the proxy and closes the port.
+     * @returns {Promise<undefined | Error>}
+     */
     close() {
         const apiUrl = `${this.apiUrl}`;
         const options = {method : 'DELETE'};
@@ -214,7 +294,12 @@ class browserMobProxyClientApi {
             return browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-    //new version
+
+    /**
+     * Returns the JSON/HAR content representing all the HTTP traffic passed through the proxy
+     * (provided you have already created the HAR with this {@link browserMobProxyClientApi#newHar|method})
+     * @returns {Promise< harObject | Error>}
+     */
     getHar() {
         const apiUrl = `${this.apiUrl}/har`;
         let options = { method : 'GET' };
@@ -224,7 +309,11 @@ class browserMobProxyClientApi {
             return result;
         });
     };
-    //new version
+
+    /**
+     * Displays whitelisted items
+     * @returns {Promise<string[] | Error>} - Array of urls which have set before
+     */
     getWhiteList() {
 
         const apiUrl = `${this.apiUrl}/whitelist`;
@@ -235,7 +324,13 @@ class browserMobProxyClientApi {
             return result;
         });
     };
-    //new version
+
+    /**
+     * Sets a list of URL patterns to whitelist
+     * @param {string} httpCodeStatus - the HTTP status code to return for URLs that do not match the whitelist.
+     * @param {string} regexps - a comma separated list of regular expressions.
+     * @returns {Promise<undefined | Error>}
+     */
     setWhiteList(httpCodeStatus, regexps) {
 
         const apiUrl = `${this.apiUrl}/whitelist`;
@@ -245,7 +340,11 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-    //new version
+
+    /**
+     * Clears all URL patterns from the whitelist
+     * @returns {Promise<undefined | Error>}
+     */
     clearWhiteList() {
 
         const apiUrl = `${this.apiUrl}/whitelist`;
@@ -255,7 +354,11 @@ class browserMobProxyClientApi {
             return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
-    //new version
+
+    /**
+     * Displays blacklisted items
+     * @returns {Promise<BlackListedUrl[] | Error>}
+     */
     getBlackList() {
 
         const apiUrl = `${this.apiUrl}/blacklist`;
@@ -299,6 +402,10 @@ class browserMobProxyClientApi {
         });
     };
     //new version
+    /**
+     * Clears all URL patterns from the blacklist
+     * @returns {Promise<undefined | Error>}
+     */
     clearBlackList() {
 
         const apiUrl = `${this.apiUrl}/blacklist`;
@@ -359,9 +466,8 @@ class browserMobProxyClientApi {
         });
     };
     /**
-     * Set and override HTTP Request headers. Overrides only headers that has been set before, by this method.
-     * Also, this method adds header-value, but doesn't override it, if headers has been set before without his participation.
-     * @param {object} headers - Represents set of headers, Where key is a header name and value is a value of HTTP header
+     * Set and override HTTP Request headers
+     * @param {object} headers - Represents set of headers, where key is a header name and value is a value of HTTP header
      * @returns {Promise}
      */
     setHeaders(headers) {
@@ -374,110 +480,175 @@ class browserMobProxyClientApi {
         });
     };
 
+    /**
+     * Overrides normal DNS lookups and remaps the given hosts with the associated IP address
+     * @param {object} dns - Represents set of of hosts, where key is a host name and value is a IP address which associated with host name
+     * @returns {Promise}
+     */
     overrideDNS (dns) {
 
-        dns = dns || {};
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/headers`;
-        let options = { method : 'POST', json : dns};
+        const apiUrl = `${this.apiUrl}/hosts`;
+        const options = { method : 'POST',  json : true, body : dns};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    };
+    /**
+     * Sets automatic basic authentication for the specified domain. This method supports only BASIC authentication.
+     * @param {object} auth - Object describes authentication data
+     * @param {string} auth.username - Login
+     * @param {string} auth.password - Password
+     * @param {string} domain - At the domain will be applying basic auth
+     * @returns {Promise}
+     */
+    setAutoAuthentication (auth, domain) {
+
+        const apiUrl = `${this.apiUrl}/auth/basic/${domain}`;
+        const options = { method : 'POST',  json : true, body : auth};
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    }
+
+    /**
+     * Wait till all request are being made
+     * @param {object} waitObject - Object describes waits data
+     * @param {number} waitObject.quietPeriodInMs - amount of time after which network traffic will be considered "stopped"
+     * @param {number} waitObject.timeoutInMs - maximum amount of time to wait for network traffic to stop
+     * @returns {Promise}
+     */
+    setWait(waitObject){
+
+        for(let waitProperty in waitObject) {
+            waitObject[waitProperty] = waitObject[waitProperty].toString();
+        }
+
+        const apiUrl = `${this.apiUrl}/wait`;
+        const options = { method : 'PUT',  form : waitObject};
+
+
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    }
+
+    /**
+     * Handles different proxy timeouts. The new LittleProxy implementation requires that all timeouts be set before start Proxy, because of it tests skipped.
+     * @param {object} timeoutObj - Describes timeout object
+     * @param {number} timeoutObj.requestTimeout - Request timeout in milliseconds. timeout value of -1 is interpreted as infinite timeout.
+     * @param {number} timeoutObj.readTimeout  - Read timeout in milliseconds. Which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.
+     * @param {number} timeoutObj.connectionTimeout  - Determines the timeout in milliseconds until a connection is established. A timeout value of zero is interpreted as an infinite timeout.
+     * @param {number} timeoutObj.dnsCacheTimeout  -  Sets the maximum length of time that records will be stored in this Cache. A nonpositive value disables this feature
+     * @returns {Promise}
+     */
+    setTimeouts(timeoutObj){
+
+        for(let timeoutProperty in timeoutObj) {
+            timeoutObj[timeoutProperty] = timeoutObj[timeoutProperty].toString();
+        }
+
+        const apiUrl = `${this.apiUrl}/timeout`;
+        const options = { method : 'PUT',  json : true, body : timeoutObj};
+
+
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
+        });
+    }
+
+    /**
+     * Redirecting URL's
+     * @param redirectObj - Describes redirect object
+     * @param {string} redirectObj.matchRegex - a matching URL regular expression
+     * @param {string} redirectObj.replace - replacement URL
+     * @returns {Promise}
+     */
+    setRedirectUrls(redirectObj){
+
+        const apiUrl = `${this.apiUrl}/rewrite`;
+        const options = { method : 'PUT',  form : redirectObj};
+
+        return co(function* (){
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
 
-    //does it work? test fails
-    waitRequests({quitePeriodInMs = 0, timeoutInMs = 0}) {
+    /**
+     * Removes all URL redirection rules currently in effect
+     * @returns {Promise}
+     */
+    removeRedirects(){
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/wait`;
-        let options = { method : 'PUT', form : {quitePeriodInMs : quitePeriodInMs, timeoutInMs : timeoutInMs}};
+        const apiUrl = `${this.apiUrl}/rewrite`;
+        const options = { method : 'DELETE'};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
 
-    //does not significant than payload must be in json coded type?
-    setTimeouts({requestTimeout = -1, readTimeout = 60000, connectionTimeout = 60000, dnsCacheTimeout = 0}) {
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/timeout`;
-        let options = { method : 'PUT', json : {requestTimeout : requestTimeout, readTimeout : readTimeout,
-            connectionTimeout : connectionTimeout, dnsCacheTimeout : dnsCacheTimeout}};
+    /**
+     * Setting the retry count
+     * @param {number} numberOfTries - The number of times a method will be retried
+     * @returns {Promise}
+     */
+    setRetries(numberOfTries){
+
+        const apiUrl = `${this.apiUrl}/retry`;
+        const options = { method : 'PUT',  form : {retrycount : numberOfTries}};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
 
-    redirectUrls({matchRegex = '', replace = ''}) {
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/rewrite`;
-        let options = { method : 'PUT', form : {matchRegex : matchRegex, replace : replace}};
+    /**
+     * Empties the DNS cache
+     * @returns {Promise}
+     */
+    clearDNSCache(){
+
+        const apiUrl = `${this.apiUrl}/dns/cache`;
+        const options = { method : 'DELETE'};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
     };
 
-    removeRedirectedUrls(){
+    /**
+     * Describe your own request interception
+     * @param {string} rule - a string which determines interceptor rules.
+     * @returns {Promise}
+     */
+    setRequestInterception (rule) {
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/rewrite`;
-        let options = { method : 'DELETE'};
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
-
-    //does this method clear the DNS cache?
-    clearCache(){
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/dns/cache`;
-        let options = { method : 'DELETE'};
+        const apiUrl = `${this.apiUrl}/filter/request`;
+        const options = { method : 'POST',  body : rule};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
-    };
+    }
 
-    setAuthToDomain({domain,  username, password}){
+    /**
+     * Describe your own response interception
+     * @param {string} rule - a string which determines interceptor rules.
+     * @returns {Promise}
+     */
+    setResponseInterception (rule) {
 
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/auth/basic/${domain}`;
-        let options = { method : 'POST', json : {username : username, password : password}};
+        const apiUrl = `${this.apiUrl}/filter/response`;
+        const options = { method : 'POST',  body : rule};
 
         return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
+            return yield browserMobProxyClient[bmpRequest](apiUrl, options);
         });
-    };
-
-    changeHeader({headerName, headerValue}) {
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/filter/request`;
-        let options = { method : 'POST',
-            body : `request.headers().remove('${headerName}'); request.headers().add('${headerName}', '${headerValue}');`};
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
-
-    deleteHeader({headerName}) {
-
-        let apiUrl = `${this.url}/proxy/${this._lpPort}/filter/request`;
-        let options = { method : 'POST',
-            body : `request.headers().remove('${headerName}');`};
-
-        return co(function* (){
-            let result = yield lpClass[bmpRequest](apiUrl, options);
-            return result;
-        });
-    };
+    }
 };
 
 const typedBrowserMobProxyClient = new typed(browserMobProxyClient, typesBrowserMobProxyClient);

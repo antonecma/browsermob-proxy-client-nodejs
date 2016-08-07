@@ -14,9 +14,13 @@ const createHTTPServer = (port = 58080) => {
     const pathToImage = path.join(moronLocalPath, imageName);
 
     createHTTPServer.imageName = imageName;
+    createHTTPServer.defaultContent = '<html><body><h1>MoronHTTP</h1></body></html>';
     createHTTPServer.image = (fs.readFileSync(pathToImage));
     createHTTPServer.imageBase64 = createHTTPServer.image.toString('base64');
     createHTTPServer.oneMbitBuffer = buffer.alloc(1024 * 1024, 74);
+    createHTTPServer.authUserName = 'user';
+    createHTTPServer.authPassword = 'password';
+
     fs.stat(pathToImage, (err, stat) => {
         createHTTPServer.imageSize = stat.size;
     });
@@ -46,11 +50,27 @@ const createHTTPServer = (port = 58080) => {
                     res.write('<html><body><img src="moron.jpeg"></body></html>');
                     res.end();
                     break;
+                case '/retries' :
+                    res.setHeader('Content-Type', 'text/html');
+                    res.writeHeader(200);
+                    //TODO should return number of retries.
+                    res.write('retries');
+                    res.end();
+                    break;
                 case '/1MbitContent' :
                     res.setHeader('Content-Type', 'text/plain');
                     res.writeHeader(200);
                     res.write(createHTTPServer.oneMbitBuffer);
                     res.end();
+                    break;
+                case '/readTimeout' :
+                    res.setHeader('Content-Type', 'text/plain');
+                    res.writeHeader(200);
+                    res.write(createHTTPServer.oneMbitBuffer, () => {
+                        setTimeout(() => {
+                            res.end();
+                        }, 10000);
+                    });
                     break;
                 case '/upload1Mbit':
                     req.on('data', (data) => {
@@ -65,13 +85,30 @@ const createHTTPServer = (port = 58080) => {
                 case '/returnHeaders' :
                     res.writeHeader(200, {'Content-Type' : 'application/json'});
                     res.end(JSON.stringify(req.headers));
+                case '/auth':
+                    console.log(req.headers.authorization);
+                    if (req.headers.authorization) {
+                        const auth = new Buffer(req.headers.authorization.split(/\s+/).pop(), 'base64').toString();
+                        const user = auth.split(':')[0];
+                        const pass = auth.split(':')[1];
+                        if (user === createHTTPServer.authUserName && pass === createHTTPServer.authPassword) {
+                            res.setHeader('Content-Type', 'text/html');
+                            res.writeHeader(200);
+                            res.write(createHTTPServer.defaultContent);
+                        } else {
+                            res.writeHeader(401);
+                        }
+                    } else {
+                        res.writeHeader(401);
+                    }
+                    res.end();
                     break;
                 default:
                     res.setHeader('Content-Type', 'text/html');
                     res.setHeader('Header1', 'value1');
                     res.setHeader('Header2', 'value2');
                     res.writeHeader(200);
-                    res.write('<html><body><h1>MoronHTTP</h1></body></html>');
+                    res.write(createHTTPServer.defaultContent);
                     res.end();
                     break;
             }

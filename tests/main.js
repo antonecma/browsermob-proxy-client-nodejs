@@ -96,7 +96,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
     });
 
-    describe.skip('BrowserMob Proxy Client Class', () =>{
+    describe('BrowserMob Proxy Client Class', () =>{
 
         it('should contain url to REST API server', () => {
             ((new bmpClient(bmpHost, bmpPort)).url).should.be.eql(`http://${bmpHost}:${bmpPort}`);
@@ -153,7 +153,7 @@ describe('BrowserMob Proxy Client general test', () => {
 
     describe('BrowserMob Proxy Client instance [returned by create()]', () => {
 
-        describe.skip('should create a new HAR - newHar()', () => {
+        describe('should create a new HAR - newHar()', () => {
 
             it('should capture headers', (done) => {
 
@@ -217,7 +217,7 @@ describe('BrowserMob Proxy Client general test', () => {
                         for(let i = 0; i < responseCount; i++){
                             responseContents.push(har.log.entries[i].response.content.text);
                         }
-                        responseContents.should.containEql('<html><body><h1>MoronHTTP</h1></body></html>');
+                        responseContents.should.containEql(moronHTTP.defaultContent);
                         done();
                     })
                     .catch((value) => {done(new Error(value));});
@@ -313,7 +313,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('should start new page on the existing HAR - startPage()', () => {
+        describe('should start new page on the existing HAR - startPage()', () => {
 
             it('should add new page on existing HAR', (done) => {
 
@@ -429,7 +429,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('should close client - close()', () => {
+        describe('should close client - close()', () => {
 
             it('should close', (done) => {
 
@@ -459,7 +459,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('should return HAR - getHAR()', () => {
+        describe('should return HAR - getHAR()', () => {
 
             it('should return HAR created by newHar() - getHar()', (done) => {
 
@@ -487,7 +487,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('work with whitelists - getWhiteList(), setWhiteList(), clearWhiteList()', () => {
+        describe('work with whitelists - getWhiteList(), setWhiteList(), clearWhiteList()', () => {
 
             describe('getWhiteList()', () => {
 
@@ -595,7 +595,7 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('work with blacklists - getBlackList(), setBlackList(), clearBlackList()', () => {
+        describe('work with blacklists - getBlackList(), setBlackList(), clearBlackList()', () => {
 
             describe('getBlackList()', () => {
 
@@ -726,11 +726,11 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
-        describe.skip('Limit the bandwidth through the proxy  - setLimits(), getLimits()', () => {
+        describe('Limit the bandwidth through the proxy  - setLimits(), getLimits()', () => {
 
             describe('setLimits()', () => {
 
-                it.skip('should setup upstream bandwidth limit ', (done) => {
+                it('should setup upstream bandwidth limit ', (done) => {
 
                     const upstreamKbps = 100;
                     const deltaInPercent = 10;
@@ -775,7 +775,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it.skip('should setup downstream bandwidth limit ', (done) => {
+                it('should setup downstream bandwidth limit ', (done) => {
 
                     const downstreamKbps = 100;
                     const deltaInPercent = 10;
@@ -822,7 +822,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it.skip('should setup latency', (done) => {
+                it('should setup latency', (done) => {
 
                     const latency = 1000;
                     const limitsSetterObject = { latency : latency};
@@ -851,7 +851,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it.skip('should setup how many kilobytes in total the client is allowed to download through the proxy ',
+                it('should setup how many kilobytes in total the client is allowed to download through the proxy ',
                     (done) => {
 
                     const downstreamMaxKB = 100;
@@ -875,7 +875,7 @@ describe('BrowserMob Proxy Client general test', () => {
                             console.log(value);
                             done(new Error(value));});
                 });
-                it.skip('should setup how many kilobytes in total the client is allowed to upload through the proxy ',
+                it('should setup how many kilobytes in total the client is allowed to upload through the proxy ',
                     (done) => {
 
                     const upstreamMaxKB = 100;
@@ -1006,7 +1006,7 @@ describe('BrowserMob Proxy Client general test', () => {
                 });
             });
 
-            describe.skip('getLimits()',  () => {
+            describe('getLimits()',  () => {
 
                 it('should return limits', (done) => {
 
@@ -1026,9 +1026,500 @@ describe('BrowserMob Proxy Client general test', () => {
             });
         });
 
+        describe('Overrides normal DNS lookups and remaps the given hosts with the associated IP address - overrideDNS()', () => {
+
+            it('should overrides normal DNS lookups ', (done) => {
+
+                const overrideDNS = {};
+                const url = 'http://www.example.com:58080';
+                const urlToOverride = 'www.example.com';
+                const urlRemapped = bmpHost;
+
+                let browserMobProxyClient =  undefined;
+
+                overrideDNS[urlToOverride] = urlRemapped;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.overrideDNS(overrideDNS);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        //Create new selenium session
+                        return request(`${url}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+        describe('Sets automatic basic authentication for the specified domain - setAutoAuthentication ()', () => {
+
+            it('should set automatic basic authentication  ', (done) => {
+
+                const auth = { 'username' : moronHTTP.authUserName, 'password' : moronHTTP.authPassword};
+                const domain  = bmpHost;
+
+                let browserMobProxyClient =  undefined;
 
 
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setAutoAuthentication(auth, domain);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/auth`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+        //TODO write a right test suite for setWait() method. See here : https://github.com/lightbody/browsermob-proxy/blob/f65e9b3aea1672a8b6b121a7a7c41f973e7cfedf/browsermob-core/src/main/java/net/lightbody/bmp/BrowserMobProxy.java#L552
+        describe.skip('Wait till all request are being made - setWait()', () => {
+
+            it('should ...', (done) => {
+
+                const quietPeriodInMs = 5000;
+
+                let browserMobProxyClient =  undefined;
+                let startTime = undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        startTime = Date.now();
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        browserMobProxyClient.setWait({quietPeriodInMs : quietPeriodInMs, timeoutInMs : quietPeriodInMs});
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+
+                    })
+                    .then(() => {
+                        console.log(`time : ${Date.now() - startTime}`);
+                        startTime = Date.now();
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        console.log(har.log.entries)
+                        console.log(`time : ${Date.now() - startTime}`);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+        //TODO write a right a nd all tests suite for setTimeouts() method.
+        describe.skip('Handles different proxy timeouts - setTimeouts()', () => {
+            //TODO write a right test for 'requestTimeout' param. See here : https://github.com/lightbody/browsermob-proxy/blob/9443605d3e6458248831663ab19e041c0859316f/browsermob-core/src/main/java/net/lightbody/bmp/BrowserMobProxyServer.java#L695
+            it('should set request timeout', (done) => {
+
+                const requestTimeout = 1;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setTimeouts({requestTimeout : requestTimeout});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/readTimeout`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        har.log.entries.forEach((entry) => {
+
+                            console.log(entry.timings);
+                        });
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+            it('should set read timeout', (done) => {
+
+                const readTimeout = 1;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setTimeouts({readTimeout : readTimeout});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar();
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/readTimeout`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        har.log.entries.forEach((entry) => {
+
+                            console.log(entry.timings);
+                        });
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+        describe('Redirecting URL\'s - setRedirectUrls(), removeRedirects()', () => {
+
+            it('should set redirect url - setRedirectUrls()', (done) => {
+
+                const replace = `${moronHTTPUrl}`;
+                const match = `https?://www\\.google\\.com/.*`;
+                const url = 'http://www.google.com';
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setRedirectUrls({matchRegex : match, replace : replace});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${url}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+            it('should delete redirect url - removeRedirects()', (done) => {
+
+                const replace = `${moronHTTPUrl}`;
+                const match = `https?://www\\.google\\.com/.*`;
+                const url = 'http://www.google.com';
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setRedirectUrls({matchRegex : match, replace : replace});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.removeRedirects();
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${url}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.not.be.equal(moronHTTP.defaultContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
+
+        describe('Setting the retry count - setRetries()', () => {
+
+            it('should set retries number - setRetries()', (done) => {
+
+                const retries = 5;
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setRetries(retries);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}//retries`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const content = har.log.entries[0].response.content.text;
+                        content.should.be.equal(retries);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+        });
+
+        //TODO write a right tests suite for clearDNSCache() method.
+
+        describe.skip('Empties the DNS cache - clearDNSCache()', () => {
+
+            it('should clear DNS cache - clearDNSCache()', (done) => {
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.clearDNSCache();
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true, true);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        done(new Error('No test yet!'));
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+        });
+
+        describe('Describe your own request interception - setRequestInterception()', () => {
+
+            it('should set userAgent by interception - setRequestInterception()', (done) => {
+
+                const headerName = 'User-Agent';
+                const headerValue = 'INTERCEPTION';
+                const interceptionRule = `request.headers().add('${headerName}', '${headerValue}');`;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.clearDNSCache();
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.newHar(true);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.setRequestInterception(interceptionRule);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.getHar();
+                    })
+                    .then((har) => {
+                        const userAgent = har.log.entries[0].request.headers.find((header) => {
+                            return header.name === headerName;
+                        });
+                        userAgent.value.should.be.equal(headerValue);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+        });
+        describe('Describe your own response interception - setResponseInterception()', () => {
+
+            it('should change response content by interception - setResponseInterception()', (done) => {
+
+                const interceptionContent = 'INTERCEPTION';
+                const interceptionRule = `contents.setTextContents('${interceptionContent}');`;
+
+                let browserMobProxyClient =  undefined;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setResponseInterception(interceptionRule);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/plain`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then((response) => {
+                        response.should.be.equal(interceptionContent);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));
+                    });
+            });
+
+        });
+
+        describe('Set and override HTTP Request headers - setHeaders()', () => {
+
+            it('should set HTTP header', (done) => {
+
+                const headerName = "some";
+                const headerValue = "BrowserMob-Proxy";
+                const header = {};
+
+                let browserMobProxyClient = undefined;
+
+                header[headerName] = headerValue;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setHeaders(header);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/returnHeaders`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then((response) => {
+                        response.should.have.property(headerName).equal(headerValue);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+            it('should add header value to existing header name', (done) => {
+
+                const headerName = "some-header";
+                const headerValue = "some-value-of-header";
+                const headerValueAdded = "value-of-header-added";
+                const requestHeaders = {}
+                const headerOverride = {};
+
+                let browserMobProxyClient = undefined;
+
+                requestHeaders[headerName] = headerValue;
+                headerOverride[headerName] = headerValueAdded;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setHeaders(headerOverride);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/returnHeaders`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`,
+                                headers : requestHeaders});
+                    })
+                    .then((response) => {
+                        response.should.have.property(headerName).equal(`${headerValue}, ${headerValueAdded}`);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+
+            it('should override header value', (done) => {
+
+                const headerName = "some-header";
+                const headerValue = "some-value-of-header";
+                const headerValueOverride = "value-of-header-override";
+                const header = {}
+                const headerOverride = {};
+
+                let browserMobProxyClient = undefined;
+
+                header[headerName] = headerValue;
+                headerOverride[headerName] = headerValueOverride;
+
+                (new bmpClient(bmpHost, bmpPort)).create()
+                    .then((client) => {
+                        browserMobProxyClient = client;
+                        return browserMobProxyClient.setHeaders(header);
+                    })
+                    .then(() => {
+                        return browserMobProxyClient.setHeaders(headerOverride);
+                    })
+                    .then(() => {
+                        return request(`${moronHTTPUrl}/returnHeaders`,
+                            {method : 'GET', proxy : `http://${bmpHost}:${browserMobProxyClient.port}`});
+                    })
+                    .then((response) => {
+                        response.should.have.property(headerName).equal(headerValueOverride);
+                        done();
+                    })
+                    .catch((value) => {
+                        console.log(value);
+                        done(new Error(value));});
+            });
+        });
     });
+
 
     after((done) => {
         bmpProcess.kill();
