@@ -93,6 +93,8 @@ Creates a new HAR attached to the proxy and returns the HAR content if there was
 | [pageRef] | <code>string</code> | <code>&quot;&#x27;Page 1&#x27;&quot;</code> | the string name of the first page ref that should be used in the HAR |
 | [pageTitle] | <code>string</code> | <code>&quot;&#x27;Page 1&#x27;&quot;</code> | the title of first HAR page |
 
+
+*Fulfill returned value* : Object that represent [HAR](http://www.softwareishard.com/blog/har-12-spec)
 <a name="browserMobProxyClientApi+startPage"></a>
 
 ### browserMobProxyClientApi.startPage([newPageTitleObject], [pageRef], [pageTitle]) ⇒ <code>Promise.&lt;(undefined\|Error)&gt;</code>
