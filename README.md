@@ -245,11 +245,8 @@ Overrides normal DNS lookups and remaps the given hosts with the associated IP a
 *Fulfill returned value* : undefined
 
 <a name="browserMobProxyClientApi+setAutoAuthentication"></a>
-
-### browserMobProxyClientApi.setAutoAuthentication(auth, domain) ⇒ <code>Promise</code>
+##### setAutoAuthentication(auth, domain)
 Sets automatic basic authentication for the specified domain. This method supports only BASIC authentication.
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -258,12 +255,11 @@ Sets automatic basic authentication for the specified domain. This method suppor
 | auth.password | <code>string</code> | Password |
 | domain | <code>string</code> | At the domain will be applying basic auth |
 
+*Fulfill returned value* : undefined
+
 <a name="browserMobProxyClientApi+setWait"></a>
-
-### browserMobProxyClientApi.setWait(waitObject) ⇒ <code>Promise</code>
+##### setWait(waitObject)
 Wait till all request are being made
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -271,12 +267,11 @@ Wait till all request are being made
 | waitObject.quietPeriodInMs | <code>number</code> | amount of time after which network traffic will be considered "stopped" |
 | waitObject.timeoutInMs | <code>number</code> | maximum amount of time to wait for network traffic to stop |
 
+*Fulfill returned value* : undefined
+
 <a name="browserMobProxyClientApi+setTimeouts"></a>
-
-### browserMobProxyClientApi.setTimeouts(timeoutObj) ⇒ <code>Promise</code>
+##### setTimeouts(timeoutObj)
 Handles different proxy timeouts. The new LittleProxy implementation requires that all timeouts be set before start Proxy, because of it tests skipped.
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -286,12 +281,11 @@ Handles different proxy timeouts. The new LittleProxy implementation requires th
 | timeoutObj.connectionTimeout | <code>number</code> | Determines the timeout in milliseconds until a connection is established. A timeout value of zero is interpreted as an infinite timeout. |
 | timeoutObj.dnsCacheTimeout | <code>number</code> | Sets the maximum length of time that records will be stored in this Cache. A nonpositive value disables this feature |
 
+*Fulfill returned value* : undefined
+
 <a name="browserMobProxyClientApi+setRedirectUrls"></a>
-
-### browserMobProxyClientApi.setRedirectUrls(redirectObj) ⇒ <code>Promise</code>
+##### setRedirectUrls(redirectObj)
 Redirecting URL's
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -299,47 +293,46 @@ Redirecting URL's
 | redirectObj.matchRegex | <code>string</code> | a matching URL regular expression |
 | redirectObj.replace | <code>string</code> | replacement URL |
 
-<a name="browserMobProxyClientApi+removeRedirects"></a>
+*Fulfill returned value* : undefined
 
-### browserMobProxyClientApi.removeRedirects() ⇒ <code>Promise</code>
+<a name="browserMobProxyClientApi+removeRedirects"></a>
+##### removeRedirects()
 Removes all URL redirection rules currently in effect
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
+*Fulfill returned value* : undefined
+
 <a name="browserMobProxyClientApi+setRetries"></a>
-
-### browserMobProxyClientApi.setRetries(numberOfTries) ⇒ <code>Promise</code>
+##### setRetries(numberOfTries)
 Setting the retry count
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | numberOfTries | <code>number</code> | The number of times a method will be retried |
 
-<a name="browserMobProxyClientApi+clearDNSCache"></a>
+*Fulfill returned value* : undefined
 
-### browserMobProxyClientApi.clearDNSCache() ⇒ <code>Promise</code>
+<a name="browserMobProxyClientApi+clearDNSCache"></a>
+##### clearDNSCache() 
 Empties the DNS cache
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
+*Fulfill returned value* : undefined
+
 <a name="browserMobProxyClientApi+setRequestInterception"></a>
-
-### browserMobProxyClientApi.setRequestInterception(rule) ⇒ <code>Promise</code>
-Describe your own request interception
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
+##### setRequestInterception(rule)
+Describe your own request interception. See details explanation [here](#https://github.com/lightbody/browsermob-proxy#rest-api-interceptors-with-littleproxy)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | rule | <code>string</code> | a string which determines interceptor rules. |
+
+*Fulfill returned value* : undefined
 
 <a name="browserMobProxyClientApi+setResponseInterception"></a>
-
-### browserMobProxyClientApi.setResponseInterception(rule) ⇒ <code>Promise</code>
-Describe your own response interception
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
+##### setResponseInterception(rule)
+Describe your own response interception. See details explanation [here](#https://github.com/lightbody/browsermob-proxy#rest-api-interceptors-with-littleproxy)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | rule | <code>string</code> | a string which determines interceptor rules. |
+
+*Fulfill returned value* : undefined
