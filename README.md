@@ -76,7 +76,7 @@ bmpSet.create()
     return client.close();
   });
 ```
-
+<a name="clientMethods"></a>
 ##Client methods
 
 <a name="browserMobProxyClientApi+newHar"></a>
@@ -90,70 +90,76 @@ Creates a new HAR attached to the proxy and returns the HAR content if there was
 | [boolCaptureHeaders] | <code>boolean</code> | <code>true</code> | capture headers or not |
 | [boolCaptureBody] | <code>boolean</code> | <code>false</code> | capture content bodies or not |
 | [boolCaptureAllContent] | <code>boolean</code> | <code>false</code> | capture binary content or not. |
-| [pageRef] | <code>string</code> | <code>&quot;&#x27;Page 1&#x27;&quot;</code> | the string name of the first page ref that should be used in the HAR |
-| [pageTitle] | <code>string</code> | <code>&quot;&#x27;Page 1&#x27;&quot;</code> | the title of first HAR page |
-
+| [pageRef] | <code>string</code> | <code>&quot;Page 1&quot;</code> | the string name of the first page ref that should be used in the HAR |
+| [pageTitle] | <code>string</code> | <code>&quot;Page 1&quot;</code> | the title of first HAR page |
 
 *Fulfill returned value* : Object that represent [HAR](http://www.softwareishard.com/blog/har-12-spec)
+
 <a name="browserMobProxyClientApi+startPage"></a>
-
-### browserMobProxyClientApi.startPage([newPageTitleObject], [pageRef], [pageTitle]) ⇒ <code>Promise.&lt;(undefined\|Error)&gt;</code>
+##### startPage([newPageTitleObject], [pageRef], [pageTitle])
 Starts a new page on the existing HAR
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | [newPageTitleObject] | <code>object</code> |  | - |
-| [pageRef] | <code>string</code> | <code>&quot;&#x27;Page N&#x27;&quot;</code> | The string name of the first page ref that should be used in the HAR. |
-| [pageTitle] | <code>string</code> | <code>&quot;&#x27;Page N&#x27;&quot;</code> | The title of new HAR page |
+| [pageRef] | <code>string</code> | <code>&quot;Page N&quot;</code> | The string name of the first page ref that should be used in the HAR. |
+| [pageTitle] | <code>string</code> | <code>&quot;Page N&quot;</code> | The title of new HAR page |
+
+*Fulfill returned value* : undefined
 
 <a name="browserMobProxyClientApi+close"></a>
-
-### browserMobProxyClientApi.close() ⇒ <code>Promise.&lt;(undefined\|Error)&gt;</code>
+##### close()
 Shuts down the proxy and closes the port.
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
+*Fulfill returned value* : undefined
 <a name="browserMobProxyClientApi+getHar"></a>
 
-### browserMobProxyClientApi.getHar() ⇒ <code>Promise.&lt;(harObject\|Error)&gt;</code>
+##### getHar()
 Returns the JSON/HAR content representing all the HTTP traffic passed through the proxy
 (provided you have already created the HAR with this [method](#browserMobProxyClientApi+newHar))
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
-<a name="browserMobProxyClientApi+getWhiteList"></a>
+*Fulfill returned value* : Object that represent [HAR](http://www.softwareishard.com/blog/har-12-spec)
 
-### browserMobProxyClientApi.getWhiteList() ⇒ <code>Promise.&lt;(Array.&lt;string&gt;\|Error)&gt;</code>
+<a name="browserMobProxyClientApi+getWhiteList"></a>
+##### getWhiteList()
 Displays whitelisted items
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
-**Returns**: <code>Promise.&lt;(Array.&lt;string&gt;\|Error)&gt;</code> - - Array of urls which have set before  
+*Fulfill returned value* : Array of urls which have set before by [setWhiteList() method](#browserMobProxyClientApi+setWhiteList) 
+
 <a name="browserMobProxyClientApi+setWhiteList"></a>
-
-### browserMobProxyClientApi.setWhiteList(httpCodeStatus, regexps) ⇒ <code>Promise.&lt;(undefined\|Error)&gt;</code>
+##### setWhiteList(httpCodeStatus, regexps)
 Sets a list of URL patterns to whitelist
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | httpCodeStatus | <code>string</code> | the HTTP status code to return for URLs that do not match the whitelist. |
 | regexps | <code>string</code> | a comma separated list of regular expressions. |
 
-<a name="browserMobProxyClientApi+clearWhiteList"></a>
+*Fulfill returned value* : undefined
 
-### browserMobProxyClientApi.clearWhiteList() ⇒ <code>Promise.&lt;(undefined\|Error)&gt;</code>
+<a name="browserMobProxyClientApi+clearWhiteList"></a>
+##### clearWhiteList()
 Clears all URL patterns from the whitelist
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
-<a name="browserMobProxyClientApi+getBlackList"></a>
+*Fulfill returned value* : undefined
 
-### browserMobProxyClientApi.getBlackList() ⇒ <code>Promise.&lt;(Array.&lt;BlackListedUrl&gt;\|Error)&gt;</code>
+##### getBlackList()
 Displays blacklisted items
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
-<a name="browserMobProxyClientApi+setBlackList"></a>
+*Fulfill returned value* : Object that represent black list item
 
+*Fulfill returned description* :
+
+| Name | Type | Description |
+| --- | --- | --- |
+| urlPattern | <code>string</code> | incoming regexp for blocking |
+| statusCode | <code>number</code> | incoming http code is returned for blocked url |
+| httpMethodPattern | <code>string</code> | incoming  regular expression for matching HTTP method (GET, POST, PUT, etc). If null processing all HTTP method. |
+| method | <code>string</code> | regular expression for matching HTTP method (GET, POST, PUT, etc). If null processing all HTTP method. |
+| responseCode | <code>number</code> | http code is returned for blocked url |
+| pattern | <code>string</code> | incoming regexp for blocking |
+
+<a name="browserMobProxyClientApi+setBlackList"></a>
 ### browserMobProxyClientApi.setBlackList(httpCodeStatus, regexp, [methodsRegexp]) ⇒ <code>Promise.&lt;Array.&lt;BlackListedUrl&gt;&gt;</code>
 Setup url to black list
 
