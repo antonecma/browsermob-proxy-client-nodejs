@@ -56,7 +56,7 @@ const bmp = require('browsermob-proxy-client-nodejs');
 
 -
 
-> Create an object(**bmpSet**)for service set of browserMob Proxy instances. : 
+> Create an object(**bmpSet**) for service set of browserMob Proxy instances. : 
 
 ```javascript
 const bmpHost = '127.0.0.1';
@@ -371,7 +371,7 @@ Object that represent proxy info
 
 <a name="browserMobProxyClient+create"></a>
 ##### create()
-Creates new instance of [browserMobProxyClientApi](#browserMobProxyClientApi)
+Creates new instance of [browserMob Proxy Client](#clientMethods)
 
 *Fulfill returned value* : Instance of [browserMob Proxy Client](#clientMethods)
 
@@ -394,6 +394,6 @@ Object that represent proxy info
 
 <a name="browserMobProxyClient+closeAllOwnProxies"></a>
 ##### closeAllOwnProxies()
-Closes all proxies belong to current instance of [browserMobProxyClient](#browserMobProxyClient)
+Closes all proxies belong to current set of BrowserMob Proxy clients.
 
 *Fulfill returned value* : undefined
