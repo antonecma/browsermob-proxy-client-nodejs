@@ -132,7 +132,7 @@ Sets a list of URL patterns to whitelist
 
 | Param | Type | Description |
 | --- | --- | --- |
-| httpCodeStatus | <code>string</code> | the HTTP status code to return for URLs that do not match the whitelist. |
+| httpCodeStatus | <code>number</code> | the HTTP status code to return for URLs that do not match the whitelist. |
 | regexps | <code>string</code> | a comma separated list of regular expressions. |
 
 *Fulfill returned value* : undefined
@@ -146,9 +146,9 @@ Clears all URL patterns from the whitelist
 ##### getBlackList()
 Displays blacklisted items
 
-*Fulfill returned value* : Object that represent black list item
+*Fulfill returned value* : Array of object that represent black list item
 
-*Fulfill returned description* :
+*Fulfill returned value description* : It's one object desccription from array
 
 | Name | Type | Description |
 | --- | --- | --- |
@@ -160,10 +160,8 @@ Displays blacklisted items
 | pattern | <code>string</code> | incoming regexp for blocking |
 
 <a name="browserMobProxyClientApi+setBlackList"></a>
-### browserMobProxyClientApi.setBlackList(httpCodeStatus, regexp, [methodsRegexp]) ⇒ <code>Promise.&lt;Array.&lt;BlackListedUrl&gt;&gt;</code>
+##### setBlackList(httpCodeStatus, regexp, [methodsRegexp])
 Setup url to black list
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -171,50 +169,80 @@ Setup url to black list
 | regexp | <code>string</code> | The blacklist regular expression |
 | [methodsRegexp] | <code>string</code> | The regular expression for matching HTTP method (GET, POST, PUT, etc). Optional, by default processing all HTTP method |
 
-<a name="browserMobProxyClientApi+clearBlackList"></a>
+*Fulfill returned value* : undefined
 
-### browserMobProxyClientApi.clearBlackList() ⇒ <code>Promise.&lt;(undefined\|Error)&gt;</code>
+<a name="browserMobProxyClientApi+clearBlackList"></a>
+##### clearBlackList() 
 Clears all URL patterns from the blacklist
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
+*Fulfill returned value* : undefined
+
 <a name="browserMobProxyClientApi+setLimits"></a>
-
-### browserMobProxyClientApi.setLimits([browserMobProxyLimitObject]) ⇒ <code>Promise</code>
+##### setLimits([browserMobProxyLimitObject])
 Sets the downstream bandwidth limit in kbps
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type |
 | --- | --- |
 | [browserMobProxyLimitObject] | <code>[LimitsSetterObject](#LimitsSetterObject)</code> | 
 
-<a name="browserMobProxyClientApi+getLimits"></a>
+<a name="LimitsSetterObject"></a>
+###### LimitsSetterObject : <code>object</code>
+Object for setting up limits of BrowserMob Proxy
 
-### browserMobProxyClientApi.getLimits() ⇒ <code>[Promise.&lt;LimitsGetterObject&gt;](#LimitsGetterObject)</code>
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| downstreamKbps | <code>number</code> |  | Downstream bandwidth limit in kbps |
+| downstreamBps | <code>number</code> |  | Downstream bandwidth limit in bit per second |
+| upstreamKbps | <code>number</code> |  | Upstream bandwidth limit in kbps |
+| upstreamBps | <code>number</code> |  | Upstream bandwidth limit in bit per second |
+| downstreamMaxKB | <code>number</code> |  | Specifies how many kilobytes in total the client is allowed to download through the proxy |
+| upstreamMaxKB | <code>number</code> |  | Specifies how many kilobytes in total the client is allowed to upload through the proxy |
+| latency | <code>number</code> | <code>0</code> | Add the given latency to each HTTP request. By default all requests are invoked without latency |
+| enable | <code>boolean</code> | <code>false</code> | A boolean that enable bandwidth limiter. Setting any of the properties above will implicitly enable throttling |
+| payloadPercentage | <code>number</code> |  | Specifying what percentage of data sent is payload, e.g. use this to take into account overhead due to tcp/ip |
+| maxBitsPerSecond | <code>number</code> |  | The max bits per seconds you want this instance of StreamManager to respect |
+
+
+*Fulfill returned value* : undefined
+
+<a name="browserMobProxyClientApi+getLimits"></a>
+##### getLimits()
 Displays the amount of data remaining to be uploaded/downloaded until the limit is reached
 
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
+*Fulfill returned value* : [LimitsGetterObject](#LimitsGetterObject)
+
+*Fulfill returned value description* : 
+<a name="LimitsGetterObject"></a>
+###### LimitsGetterObject : <code>object</code>
+Object describes amount of data remaining to be uploaded/downloaded until the limit is reached
+
+| Name | Type | Description |
+| --- | --- | --- |
+| maxUpstreamKB | <code>number</code> | Show maxUpstreamKB set by [setLimits](#browserMobProxyClientApi+setLimits) |
+| maxDownstreamKB | <code>number</code> | Show maxDownstreamKB set by [setLimits](#browserMobProxyClientApi+setLimits) |
+| remainingUpstreamKB | <code>number</code> | Show how many kilobytes will be uploaded before the limit is reached |
+| remainingDownstreamKB | <code>number</code> | Show how many kilobytes will be downloaded before the limit is reached |
+
+
 <a name="browserMobProxyClientApi+setHeaders"></a>
-
-### browserMobProxyClientApi.setHeaders(headers) ⇒ <code>Promise</code>
+##### setHeaders(headers)
 Set and override HTTP Request headers
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | headers | <code>object</code> | Represents set of headers, where key is a header name and value is a value of HTTP header |
 
+*Fulfill returned value* : undefined
+
 <a name="browserMobProxyClientApi+overrideDNS"></a>
-
-### browserMobProxyClientApi.overrideDNS(dns) ⇒ <code>Promise</code>
+##### overrideDNS(dns)
 Overrides normal DNS lookups and remaps the given hosts with the associated IP address
-
-**Kind**: instance method of <code>[browserMobProxyClientApi](#browserMobProxyClientApi)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | dns | <code>object</code> | Represents set of of hosts, where key is a host name and value is a IP address which associated with host name |
+
+*Fulfill returned value* : undefined
 
 <a name="browserMobProxyClientApi+setAutoAuthentication"></a>
 
