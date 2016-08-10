@@ -1,2 +1,5 @@
+/node_modules
 /.idea
 /tmp
+/tests/bmp.log
+bmp.log
