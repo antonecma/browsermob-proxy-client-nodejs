@@ -76,6 +76,19 @@ bmpSet.create()
     return client.close();
   });
 ```
+
+-
+
+> If you want control all of clients instance, you may use [controllingMethods](#controllingMethods).
+Each method is Promise, too. 
+
+```javascript
+bmpSet.getProxiesList()
+  .then((list) => {
+    console.log(list);
+    //print : [{port : 8080}, {port : 8081}, {port : 8083}]
+  });
+```
 <a name="clientMethods"></a>
 ##Client methods
 
@@ -334,5 +347,53 @@ Describe your own response interception. See details explanation [here](#https:/
 | Param | Type | Description |
 | --- | --- | --- |
 | rule | <code>string</code> | a string which determines interceptor rules. |
+
+*Fulfill returned value* : undefined
+
+<a name="controllingMethods"></a>
+##Controlling methods
+
+<a name="browserMobProxyClient+getProxiesList"></a>
+##### getProxiesList()
+Receives list of all proxies, which were started.
+
+*Fulfill returned value* : Array of object that represent proxy info
+
+*Fulfill returned value description* : It's one object description from array
+
+<a name="proxyInfo"></a>
+###### proxyInfo : <code>object</code>
+Object that represent proxy info
+
+| Name | Type | Description |
+| --- | --- | --- |
+| port | <code>number</code> | tcp port, where proxy was started |
+
+<a name="browserMobProxyClient+create"></a>
+##### create()
+Creates new instance of [browserMobProxyClientApi](#browserMobProxyClientApi)
+
+*Fulfill returned value* : Instance of [browserMob Proxy Client](#clientMethods)
+
+<a name="browserMobProxyClient+getOwnProxiesList"></a>
+##### getOwnProxiesList()
+Returns own proxy list. Returned proxies belong only to current instance of [browserMob Proxy Client](#clientMethods)
+
+*Fulfill returned value* : Array of object that represent proxy info
+
+*Fulfill returned value description* : It's one object description from array
+
+<a name="proxyInfo"></a>
+###### proxyInfo : <code>object</code>
+Object that represent proxy info
+
+| Name | Type | Description |
+| --- | --- | --- |
+| port | <code>number</code> | tcp port, where proxy was started |
+
+
+<a name="browserMobProxyClient+closeAllOwnProxies"></a>
+##### closeAllOwnProxies()
+Closes all proxies belong to current instance of [browserMobProxyClient](#browserMobProxyClient)
 
 *Fulfill returned value* : undefined
