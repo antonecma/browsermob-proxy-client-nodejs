@@ -397,3 +397,60 @@ Object that represent proxy info
 Closes all proxies belong to current set of BrowserMob Proxy clients.
 
 *Fulfill returned value* : undefined
+
+
+##If you use a some webdriver module for Node.JS
+
+Suppose you are using [webdriverio](https://github.com/webdriverio/webdriverio) and want change User-Agent header.
+Let's go
+```javascript
+const bmp = require('browsermob-proxy-client-nodejs');
+const webdriverio = require('webdriverio');
+
+//helper for starting browser trough our Browser Mob Proxy
+const initWithProxy = (seleniumPort, proxyHost, proxyPort) => {
+    const options = {
+        port : seleniumPort,
+        desiredCapabilities: {
+            browserName: 'firefox',
+            proxy : {
+                proxyType : 'manual',
+                httpProxy : `${proxyHost}:${proxyPort}`
+            }
+        }
+    };
+    return webdriverio.remote(options).init();
+};
+
+//connection info (browserMob Proxy and Selenium)
+const bmpHost = '127.0.0.1';
+const bmpPort = 9090;
+
+const seleniumPort = 4444;
+
+//create browsermob proxy controlling instance
+const bmpSet = new bmp(bmpHost, bmpPort);
+
+//rule for change header
+const headerName = 'User-Agent';
+const headerValue = 'YOUR AWESOME USER';
+const interceptionRule = `request.headers().add('${headerName}', '${headerValue}');`;
+
+//here we will be storing client instance
+let  browserMobProxyClient = undefined;
+
+//create browsermob client instance
+bmpSet.create()
+  .then((client) => {
+      //Browser Mob Client
+      browserMobProxyClient = client;
+      //set up our or override current header
+      return browserMobProxyClient.setRequestInterception(interceptionRule);
+  })
+  .then(() => {
+    //Create new selenium session
+    return initWithProxy(seleniumPort, bmpHost, browserMobProxyClient.port)
+    .url(moronHTTPUrl);
+  })
+  .catch((error) => {/*error handling*/});
+```
